@@ -1,53 +1,54 @@
-grammar VSOP;
+lexer grammar VSOPLexer;
 
-WS
-	: '\t'
-	| '\r'
-	| '\n'
-	| '\f';
+WS: [ \t\r\n]-> skip;
 
-ID: [A-Za-z][A-Za-z0-9]*;
 
-TYPE
-	: 'int'
-	| 'float'
+/*
+ * Primitive types
+ */
+INT: 'int';
+FLOAT: 'float';
+/*
+ * Seprators
+ */
+LPAR: '(';
+RPAR: ')';
+LBRACE: '{';
+RBRACE: '}';
+LBRACK: '[';
+RBRACK: ']';
+SEMI: ';';
+COMMA: ',';
+
+/*
+ * Operators
+ */
+NOT: '!'; 
+ 
+ADD: '+';
+SUB: '-';	
+MUL: '*';
+DIV: '/';
+EQ: '=';
+EQQ: '==';
+OR: '||';
+
+DOT: '.';
+
+/*
+ * Literals
+ */
+INT_LITERAL: Digit+;
+
+FLOAT_LITERAL
+	: Digit* DOT Digit+
+	| Digit+ DOT Digit*
 	;
 	
-OP
-	: '+'
-	| '-'
-	;
-	
-INT: [0-9]+;
+STRING_LITERAL: '"'(Letter|Digit)*'"';
 
-FLOAT
-	: [0-9]*.[0-9]+
-	| [0-9]+.[0-9]*
-	;
+ID: Letter (Letter|Digit)*;
 
-STRING: '"'[\x00-\x7F]*'"';
-
-litteral
-	: INT
-	| FLOAT
-	| STRING
-	;
-	
-expression
-	: ID
-	| litteral
-	| fcall
-	| expression WS* OP WS* expression
-	;
-	
-declaration: (TYPE|ID) WS+ ID;
-
-assignement: (declaration|ID) WS* '=' WS* expression;
-
-parameter
-	: WS+ (ID|litteral) WS+
-	| parameter ',' parameter
-	;
-
-fcall: ID WS* '('parameter')';
+fragment Digit: [0-9];
+fragment Letter: [a-zA-Z];
 
