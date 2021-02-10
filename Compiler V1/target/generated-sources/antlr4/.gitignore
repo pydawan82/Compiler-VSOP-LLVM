@@ -1,8 +1,5 @@
-/VSOP.tokens
-/VSOPBaseListener.java
 /VSOPLexer.java
 /VSOPLexer.tokens
-/VSOPListener.java
 /VSOPParser.java
 /VSOPParser.tokens
 /VSOPParserBaseListener.java
