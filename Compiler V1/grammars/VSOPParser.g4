@@ -1,8 +1,8 @@
 parser grammar VSOPParser;
 
 options { tokenVocab = VSOPLexer;}
-
-type: INT | FLOAT
+no: ;
+/*type: INT | FLOAT
 	;
 	
 unop: NOT;
@@ -12,12 +12,17 @@ literal
 	| FLOAT_LITERAL
 	| STRING_LITERAL
 	;
+signed_literal
+	: SIGNED_INT_LITERAL
+	| SIGNED_FLOAT_LITERAL
+	;
 	
 expression
 	: ID
 	| literal
 	| fcall
 	| unop expression
+	| expression signed_literal
 	| expression bop expression
 	| LPAR expression RPAR
 	;
@@ -31,4 +36,4 @@ parameters
 	|
 	;
 
-fcall: ID LPAR parameters RPAR;
+fcall: ID LPAR parameters RPAR;*/
