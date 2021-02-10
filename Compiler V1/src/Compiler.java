@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.antlr.v4.runtime.ANTLRErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -18,7 +17,6 @@ public class Compiler {
 	
 	public Compiler(String fName) throws IOException {
 		CharStream input = CharStreams.fromFileName("vsop/main.vsop");
-		ANTLRErrorStrategy strategy;
 		lexer = new VSOPLexer(input);
 		
 		lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
