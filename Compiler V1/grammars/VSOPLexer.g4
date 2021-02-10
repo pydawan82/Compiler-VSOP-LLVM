@@ -1,54 +1,94 @@
 lexer grammar VSOPLexer;
 
-WS: [ \t\r\n]-> skip;
-
-
 /*
- * Primitive types
+ * Fragments
  */
-INT: 'int';
-FLOAT: 'float';
-/*
- * Seprators
- */
-LPAR: '(';
-RPAR: ')';
-LBRACE: '{';
-RBRACE: '}';
-LBRACK: '[';
-RBRACK: ']';
-SEMI: ';';
-COMMA: ',';
+fragment LowercaseLetter: [a-z];
+fragment UppercaseLetter: [A-Z];
+fragment Letter: LowercaseLetter | UppercaseLetter;
+fragment BinDigit: [0-1];
+fragment Digit: BinDigit | [2-9];
+fragment HexDigit: Digit | [a-fA-F];
 
 /*
- * Operators
+ * Whitespaces
  */
-NOT: '!'; 
+WS: [ \t\n\f\r]+;
+
+/*
+ * Comments
+ */
+SINGLELINE_COMMENT: '//' .*? [\n]; // Ajouter EOF aussi mais je sais pas comment le noter
+MULTILINE_COMMENT: '(*' .*? '*)';
+	
+/*
+ * Keywords
+ */
  
-ADD: '+';
-SUB: '-';	
-MUL: '*';
-DIV: '/';
-EQ: '=';
-EQQ: '==';
-OR: '||';
+AND: 'and';
+NOT: 'not';
+IN: 'in';
 
-DOT: '.';
+CLASS: 'class';
+EXTENDS: 'extends';
+ISNULL: 'isnull';
+LET: 'let';
+NEW: 'new';
+SELF: 'self';
+
+IF: 'if';
+THEN: 'then';
+ELSE: 'else';
+
+WHILE: 'while';
+DO: 'do';
+
+TRUE: 'true';
+FALSE: 'false';
+
+BOOL: 'bool';
+UNIT: 'unit';
+INT32: 'int32';
+STRING: 'string';
+
+/*
+ * Identifiers
+ */
+OBJECT_IDENTIFIER: LowercaseLetter (Letter|Digit|'_')*;
 
 /*
  * Literals
  */
-INT_LITERAL: Digit+;
-
-FLOAT_LITERAL
-	: Digit* DOT Digit+
-	| Digit+ DOT Digit*
+ 
+INTEGER_LITERAL
+	: Digit+
+	| '0x' HexDigit+
 	;
-	
-STRING_LITERAL: '"'(Letter|Digit)*'"';
 
-ID: Letter (Letter|Digit)*;
+fragment EscapeSequence: [btnr"\\] | 'x' HexDigit HexDigit | '\n' [ \t]*;
+fragment EscapeChar: '\\' EscapeSequence;
+fragment RegularChar: ;
 
-fragment Digit: [0-9];
-fragment Letter: [a-zA-Z];
+STRING_LITERAL: '"' (RegularChar|EscapeChar)*? '"';
 
+/*
+ * Operators
+ */
+
+LBRACE: '{';
+RBRACE: '}';
+LPAR: '(';
+RPAR: ')';
+COLON: ':';
+SEMICOLON: ';';
+COMMA: ',';
+PLUS: '+';
+MINUS: '-';
+TIMES: '*';
+DIV: '/';
+POW: '^';
+DOT: '.';
+EQUAL: '=';
+LOWER: '<';
+LOWER_EQUAL: '<=';
+ASSIGN: '<-';
