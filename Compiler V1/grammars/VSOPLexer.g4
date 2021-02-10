@@ -13,9 +13,8 @@ fragment HexDigit: Digit | [a-fA-F];
 /*
  * Comments
  */
-SINGLELINE_COMMENT: '//' .*? [\nEOF] -> skip; // Ajouter EOF aussi mais je sais pas comment le noter
-//TODO Attention commentaire inbriqués
-MULTILINE_COMMENT: '(*' .*? '*)' -> skip; // (* (* azeaz *)  azeaze azeazeaz *) 
+SINGLELINE_COMMENT: '//' .*? ('\n'|EOF) -> skip; // Ajouter EOF aussi mais je sais pas comment le noter
+MULTILINE_COMMENT: '(*' (MULTILINE_COMMENT|.)*? '*)' -> skip; // (* (* azeaz *)  azeaze azeazeaz *) 
 /*
  * Keywords
  */
@@ -70,6 +69,17 @@ fragment RegularChar: ~[\\"];
 STRING_LITERAL: '"' (RegularChar|EscapeChar|LineSkip)*? '"' {
 	String s = getText();
 	s = s.replaceAll("\\\\(\n|\r\n)( |\t)*", "");
+	s = s.replaceAll("\\\\n", "\\\\x0a");
+	s = s.replaceAll("\\\\r", "\\\\x0d");
+	s = s.replaceAll("\\\\\"", "\\\\x22");
+	s = s.replaceAll("\\\\\\\\", "\\\\x5c");
+	s = s.replaceAll("\\\\b", "\\\\x08");
+	s = s.replaceAll("\\\\t", "\\\\x09");
+   
+	for(int i=0; i<32; i++) {
+		s = s.replaceAll("\\x"+String.format("%02x",i),"\\\\x"+String.format("%02x",i));
+	}
+   
 	setText(s);
 };
 
