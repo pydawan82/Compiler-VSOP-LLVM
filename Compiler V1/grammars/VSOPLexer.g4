@@ -11,16 +11,11 @@ fragment Digit: BinDigit | [2-9];
 fragment HexDigit: Digit | [a-fA-F];
 
 /*
- * Whitespaces
- */
-WS: [ \t\n\f\r]+;
-
-/*
  * Comments
  */
-SINGLELINE_COMMENT: '//' .*? [\n]; // Ajouter EOF aussi mais je sais pas comment le noter
-MULTILINE_COMMENT: '(*' .*? '*)';
-	
+SINGLELINE_COMMENT: '//' .*? [\nEOF] -> skip; // Ajouter EOF aussi mais je sais pas comment le noter
+//TODO Attention commentaire inbriqués
+MULTILINE_COMMENT: '(*' .*? '*)' -> skip; // (* (* azeaz *)  azeaze azeazeaz *) 
 /*
  * Keywords
  */
@@ -54,6 +49,8 @@ STRING: 'string';
 /*
  * Identifiers
  */
+
+TYPE_INDENTIFIER: UppercaseLetter (Letter|Digit|'_')*;
 OBJECT_IDENTIFIER: LowercaseLetter (Letter|Digit|'_')*;
 
 /*
@@ -65,11 +62,16 @@ INTEGER_LITERAL
 	| '0x' HexDigit+
 	;
 
-fragment EscapeSequence: [btnr"\\] | 'x' HexDigit HexDigit | '\n' [ \t]*;
+fragment LineSkip: '\\' ('\n'|'\r\n') [ \t]*;
+fragment EscapeSequence: [btnr"\\] | 'x' HexDigit HexDigit; // \x40
 fragment EscapeChar: '\\' EscapeSequence;
-fragment RegularChar: ;
+fragment RegularChar: ~[\\"];
 
-STRING_LITERAL: '"' (RegularChar|EscapeChar)*? '"';
+STRING_LITERAL: '"' (RegularChar|EscapeChar|LineSkip)*? '"' {
+	String s = getText();
+	s = s.replaceAll("\\\\(\n|\r\n)( |\t)*", "");
+	setText(s);
+};
 
 /*
  * Operators
@@ -92,3 +94,13 @@ EQUAL: '=';
 LOWER: '<';
 LOWER_EQUAL: '<=';
 ASSIGN: '<-';
+
+
+/*
+ * Whitespaces
+ */
+WS: [ \t\n\f\r]+ -> skip;
+
+/*
+ * Bad
+ */
