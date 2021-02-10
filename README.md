@@ -5,10 +5,10 @@
 ## Part 1: Lexer
 
 **Objectives:**
-+ [x] Generate a token stream
-+ [x] Output tokens on the standard output stream
-+ [x] Output lexing errors on the error stream
-+ [ ] Test multiple vsop program samples
-+ [ ] Comment code
-+ [ ] Report
-+ [ ] Submit Code
++ ✅ Generate a token stream
++ ✅ Output tokens on the standard output stream
++ ✅ Output lexing errors on the error stream
++ ⬜️ Test multiple vsop program samples
++ ⬜️ Comment code
++ ⬜️ Report
++ ⬜️ Submit Code
