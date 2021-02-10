@@ -7,9 +7,9 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="antlr-4.4-complete.jar">
+	<classpathentry kind="lib" path="antlr-4.9.1-complete.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/Compiler%20V1/antlr4-runtime-4.3-javadoc.jar.jar!/"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/Compiler%20V1/antlr4-runtime-4.9.1-javadoc.jar.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>

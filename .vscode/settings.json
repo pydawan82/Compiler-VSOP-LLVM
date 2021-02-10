@@ -1,0 +1,10 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "Compiler V1/antlr-4.4-complete.jar"
+    ],
+    "antlr4.generation": {
+        "mode":"external",
+        "outputDir": "../src"
+    }
+}
