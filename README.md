@@ -10,5 +10,5 @@
 + ✅ Output lexing errors on the error stream
 + ⬜️ Test multiple vsop program samples
 + ⬜️ Comment code
-+ ⬜️ Report
++ ⬜️ Write report
 + ⬜️ Submit Code
