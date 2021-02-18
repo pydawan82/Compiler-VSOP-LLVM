@@ -13,8 +13,8 @@ fragment HexDigit: Digit | [a-fA-F];
 /*
  * Comments
  */
-SINGLELINE_COMMENT: '//' .*? ('\n'|EOF) -> skip; // Ajouter EOF aussi mais je sais pas comment le noter
-MULTILINE_COMMENT: '(*' (MULTILINE_COMMENT|.)*? '*)' -> skip; // (* (* azeaz *)  azeaze azeazeaz *) 
+SINGLELINE_COMMENT: '//' .*? ('\n'|EOF) -> channel(HIDDEN); // Ajouter EOF aussi mais je sais pas comment le noter
+
 /*
  * Keywords
  */
@@ -55,22 +55,33 @@ OBJECT_IDENTIFIER: LowercaseLetter (Letter|Digit|'_')*;
 /*
  * Literals
  */
- 
+
+fragment HexLitteral: '0x' HexDigit+;
+fragment DecimalLitteral: Digit+;
+
 INTEGER_LITERAL
 	: Digit+
-	| '0x' HexDigit+
+	| HexLitteral
 	;
+	
+INVALID_HEX: HexLitteral [g-zG-Z]+ {
+	getErrorListenerDispatch().syntaxError(this, "", getLine(), getCharPositionInLine(), "Bad litteral"+getText(), null);
+} -> skip;
+
+INVALID_DECIMAL: DecimalLitteral [a-zA-Z]+ {
+	getErrorListenerDispatch().syntaxError(this, "", getLine(), getCharPositionInLine(), "Bad litteral: "+getText(), null);
+} -> skip;
 
 fragment LineSkip: '\\' ('\n'|'\r\n') [ \t]*;
 fragment EscapeSequence: [btnr"\\] | 'x' HexDigit HexDigit; // \x40
 fragment EscapeChar: '\\' EscapeSequence;
-fragment RegularChar: ~[\\"];
+fragment RegularChar: ~[\\"\r\n];
 
 STRING_LITERAL: '"' (RegularChar|EscapeChar|LineSkip)*? '"' {
 	String s = getText();
 	s = s.replaceAll("\\\\(\n|\r\n)( |\t)*", "");
-	s = s.replaceAll("\\\\n", "\\\\x0a");
-	s = s.replaceAll("\\\\r", "\\\\x0d");
+	//s = s.replaceAll("\\\\n", "\\\\x0a");
+	//s = s.replaceAll("\\\\r", "\\\\x0d");
 	s = s.replaceAll("\\\\\"", "\\\\x22");
 	s = s.replaceAll("\\\\\\\\", "\\\\x5c");
 	s = s.replaceAll("\\\\b", "\\\\x08");
@@ -82,6 +93,10 @@ STRING_LITERAL: '"' (RegularChar|EscapeChar|LineSkip)*? '"' {
    
 	setText(s);
 };
+
+BAD_STRING_LITERAL: '"' (.)*? '"' {
+	getErrorListenerDispatch().syntaxError(this, "", _tokenStartLine, _tokenStartCharPositionInLine, "Bad litteral: "+getText(), null);
+} -> skip;
 
 /*
  * Operators
@@ -110,6 +125,12 @@ ASSIGN: '<-';
  * Whitespaces
  */
 WS: [ \t\n\f\r]+ -> skip;
+
+LPS: '(*' -> more, mode(MULTI);
+mode MULTI;
+	MULTILINE_COMMENT: ('(*' MULTILINE_COMMENT|'('~[*]|'*'~[)]|~[(*])*? '*)' -> mode(DEFAULT_MODE), channel(HIDDEN);
+
+
 
 /*
  * Bad
