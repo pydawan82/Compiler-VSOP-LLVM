@@ -14,16 +14,19 @@ public class Compiler {
 	PrintStream out = System.out;
 	PrintStream err = System.err;
 	VSOPLexer lexer;
+	String fName;
 	
 	public Compiler(String fName) throws IOException {
-		CharStream input = CharStreams.fromFileName("vsop/main.vsop");
+		CharStream input = CharStreams.fromFileName(fName);
 		lexer = new VSOPLexer(input);
+		this.fName = fName;
 		
 		lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
 		lexer.addErrorListener(new BaseErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
 					int charPositionInLine, String msg, RecognitionException e) {
+				
 				printError(line, charPositionInLine+1, msg);
 			}
 		});
@@ -47,12 +50,20 @@ public class Compiler {
 	}
 	
 	private void printError(int ln, int cl, String msg) {
-		err.printf("%d:%d: lexical error: %s", ln, cl, msg);
+		err.printf("%s:%d:%d: lexical error: %s", fName, ln, cl, msg);
 		err.println();
 	}
 	
 	public static void main(String[] args) throws IOException {
-		Compiler c = new Compiler("vsop/main.vsop");
+		
+		if(args.length != 1) {
+			System.err.println("Expected one argument.");
+			System.err.println("Usage: Compiler [fileName]");
+			System.exit(-1);
+			return;
+		}
+		
+		Compiler c = new Compiler(args[0]);
 		c.lex();
 	}
 }
