@@ -92,7 +92,7 @@ public class Compiler {
 		}
 		
 		for(int i=0; i< args.length; i++) {
-			if(args[i]=="-lex" && i<args.length-1) {
+			if(args[i].equals("-lex") && i<args.length-1) {
 				fName = args[i+1];
 				i++;
 			}
