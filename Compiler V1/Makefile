@@ -6,6 +6,7 @@ ANTLR = antlr-4.9.1-complete.jar
 all:
 	java -jar antlr-4.9.1-complete.jar -o targets ./grammars/VSOPLexer.g4
 	javac -cp antlr-4.9.1-complete.jar -d $(DEST) $(SRC) $(LEXER)
+	gcc -o vsopc vsopc.c
 
 install-tools:
 	wget https://www.antlr.org/download/antlr-4.9.1-complete.jar
