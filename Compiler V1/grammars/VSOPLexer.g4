@@ -49,7 +49,7 @@ STRING: 'string';
  * Identifiers
  */
 
-TYPE_INDENTIFIER: UppercaseLetter (Letter|Digit|'_')*;
+TYPE_IDENTIFIER: UppercaseLetter (Letter|Digit|'_')*;
 OBJECT_IDENTIFIER: LowercaseLetter (Letter|Digit|'_')*;
 
 /*
