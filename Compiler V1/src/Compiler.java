@@ -84,15 +84,30 @@ public class Compiler {
 	}
 	
 	public static void main(String[] args) throws IOException {
+		String fName = null;
 		
-		if(args.length != 1) {
-			System.err.println("Expected one argument.");
-			System.err.println("Usage: Compiler [fileName]");
+		if(args.length==0) {
+			System.err.println("Usage: vsopc -lex <SOURCE-FILE>");
 			System.exit(-1);
-			return;
 		}
 		
-		Compiler c = new Compiler(args[0]);
+		for(int i=0; i< args.length; i++) {
+			if(args[i]=="-lex" && i<args.length-1) {
+				fName = args[i+1];
+				i++;
+			}
+			else {
+				System.err.println("Unrecognized parameter. Usage: vsopc -lex <SOURCE-FILE>");
+				System.exit(-1);
+				return;
+			}
+		}
+		
+		if(fName == null) {
+			System.err.println("No input file. Usage: vsopc -lex <SOURCE-FILE>");
+		}
+		
+		Compiler c = new Compiler(fName);
 		c.lex();
 	}
 }
