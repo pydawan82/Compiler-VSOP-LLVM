@@ -65,11 +65,11 @@ INTEGER_LITERAL
 	;
 	
 INVALID_HEX: HexLitteral [g-zG-Z]+ {
-	getErrorListenerDispatch().syntaxError(this, "", getLine(), getCharPositionInLine(), "Bad litteral"+getText(), null);
+	getErrorListenerDispatch().syntaxError(this, "", getLine(), getCharPositionInLine(), "Ill formed hex literal", null);
 } -> skip;
 
 INVALID_DECIMAL: DecimalLitteral [a-zA-Z]+ {
-	getErrorListenerDispatch().syntaxError(this, "", getLine(), getCharPositionInLine(), "Bad litteral: "+getText(), null);
+	getErrorListenerDispatch().syntaxError(this, "", getLine(), getCharPositionInLine(), "Ill formed decimal literal", null);
 } -> skip;
 
 fragment LineSkip: '\\' ('\n'|'\r\n') [ \t]*;
@@ -94,8 +94,40 @@ STRING_LITERAL: '"' (RegularChar|EscapeChar|LineSkip)*? '"' {
 	setText(s);
 };
 
+fragment BadEscapeChar: '\\' .;
+
+BAD_ESCAPE_LITERAL: '"' (RegularChar|EscapeChar|LineSkip|BadEscapeChar)*? '"' {
+	String[] split = getText().split("\\\\([^xbtnr\\r\\n\\\"\\\\]|x[^0-9a-fA-F]|x[0-9a-fA-F][^0-9a-fA-F])");
+	
+	String[] split2 = split[0].split("\\n");
+	int ln = _tokenStartLine+split2.length-1;
+	int col;
+	if(split2.length == 1)
+		col = _tokenStartCharPositionInLine+split2[0].length();
+	else {
+		col = split2[split2.length-1].length();
+	}
+	
+	getErrorListenerDispatch().syntaxError(this, "", ln, col, "Unrecognized escape sequence", null);
+} -> skip;
+
+RAW_LINEFEED_LITERAL: '"' (RegularChar|EscapeChar|LineSkip|BadEscapeChar|'\n'|'\r')*? '"' {
+	String[] split = getText().split("[^\\\\](\\n)");
+	String[] split2 = split[0].split("\\n");
+	int ln = _tokenStartLine+split2.length-1;
+	int col;
+	if(split2.length == 1)
+		col = _tokenStartCharPositionInLine+split2[0].length();
+	else {
+		col = split2[split2.length-1].length();
+	}
+	
+	getErrorListenerDispatch().syntaxError(this, "", ln, col, "Unauthorized raw linefeed", null);
+} ->skip;
+
+
 BAD_STRING_LITERAL: '"' (.)*? '"' {
-	getErrorListenerDispatch().syntaxError(this, "", _tokenStartLine, _tokenStartCharPositionInLine, "Bad litteral: "+getText(), null);
+	getErrorListenerDispatch().syntaxError(this, "", _tokenStartLine, _tokenStartCharPositionInLine, "Ill formed string literal", null);
 } -> skip;
 
 /*

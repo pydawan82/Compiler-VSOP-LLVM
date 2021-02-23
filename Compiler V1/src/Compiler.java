@@ -1,5 +1,8 @@
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
+
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -8,13 +11,17 @@ import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.Vocabulary;
 
 public class Compiler {
 
-	PrintStream out = System.out;
-	PrintStream err = System.err;
-	VSOPLexer lexer;
-	String fName;
+	private PrintStream out = System.out;
+	private PrintStream err = System.err;
+	private VSOPLexer lexer;
+	private String fName;
+	private List<String> textTypes = Arrays.asList("INTEGER_LITERAL", "STRING_LITERAL",
+			"OBJECT_IDENTIFIER", "TYPE_IDENTIFIER");
+	private String integerLiteral = "INTEGER_LITERAL";
 	
 	public Compiler(String fName) throws IOException {
 		CharStream input = CharStreams.fromFileName(fName);
@@ -34,12 +41,34 @@ public class Compiler {
 	}
 	
 	public void lex() {
+		Vocabulary voc = lexer.getVocabulary();
 		while(true) {
 			Token t = lexer.nextToken();
 			if(t.getType() == -1)
 				break;
-			print(t.getLine(), t.getCharPositionInLine()+1, ""+t.getType(), t.getText());
+			
+			String txt = null;
+			if(integerLiteral.equals(voc.getSymbolicName(t.getType()))) {
+				txt = toDecimal(t.getText());
+			}
+			else if(textTypes.contains(voc.getSymbolicName(t.getType())))
+					txt = t.getText();
+			
+			print(t.getLine(), t.getCharPositionInLine()+1, toLowerCase(voc.getSymbolicName(t.getType())), txt);
 		}
+	}
+	
+	private String toDecimal(String integer) {
+		if(integer.startsWith("0x")) {
+			return Integer.toString(Integer.parseInt(integer.substring(2),16));
+		}
+		else
+			return integer;
+	}
+	
+	private static String toLowerCase(String s) {
+		String lower = s.toLowerCase();
+		return lower.replace('_', '-');
 	}
 	
 	private void print(int ln, int cl, String type, String text) {
