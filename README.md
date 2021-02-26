@@ -8,7 +8,6 @@
 + ✅ Generate a token stream
 + ✅ Output tokens on the standard output stream
 + ✅ Output lexing errors on the error stream
-+ ⬜️ Test multiple vsop program samples
-+ ⬜️ Comment code
-+ ⬜️ Write report
-+ ⬜️ Submit Code
++ ✅ Test multiple vsop program samples
++ ✅ Comment code
++ ✅ Submit Code
