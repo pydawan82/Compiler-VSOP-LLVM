@@ -10,4 +10,13 @@
 + ✅ Output lexing errors on the error stream
 + ✅ Test multiple vsop program samples
 + ✅ Comment code
-+ ✅ Submit Code
++ ✅ Submit code
+
+## Part 2: Parser
+
+**Objectives**
++ ⬜ Generate the syntax tree
++ ⬜ Generate the syntax errors
++ ⬜ Test code
++ ⬜ Comment code
++ ⬜ Submit code
