@@ -175,13 +175,25 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 
 	@Override
 	public Void visitBlock(VSOPParser.BlockContext ctx) {
-		// TODO Auto-generated method stub
+		Boolean notNull = false;
+		if(ctx.ex2 != null){
+			notNull = true;
+			out.print('[');
+		}
+		visitExpr(ctx.ex1);
+		if(notNull){
+			for(var expr : ctx.ex2){
+				out.print(", ");
+				visitExpr(expr);
+			}
+			out.print(']');
+		}
 		return null;
 	}
 
 	@Override
 	public Void visitExpr(VSOPParser.ExprContext ctx) {
-		// TODO Auto-generated method stub
+		//TODO trouver un moyen de switch case ou quoi les contexts pour aller dans les bons visit :)
 		return null;
 	}
 
@@ -209,4 +221,125 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
+	@Override
+	public Void visitAss(VSOPParser.AssContext ctx) {
+		out.print("Assign(" + ctx.id.getText() + ", " + ctx.ex.getText() + ")");
+		return null;
+	}
+	
+	@Override
+	public Void visitNew(VSOPParser.NewContext ctx) {
+		out.print("New(" + ctx.id.getText() + ")");
+		return null;
+	}
+	
+	@Override
+	public Void visitBl(VSOPParser.BlContext ctx) {
+		visitBlock(ctx.block());
+		return null;
+	}
+	
+	@Override
+	public Void visitWhile(VSOPParser.WhileContext ctx) {
+		out.print("While(" + visitExpr(ctx.ex1) + ", " + visitExpr(ctx.ex2) + ")");
+		return null;
+	}
+	
+	@Override
+	public Void visitNot(VSOPParser.NotContext ctx) {
+		out.print("UnOp(not, " + visitExpr(ctx.expr()) + ")");
+		return null;
+	}
+
+	@Override
+	public Void visitMinus(VSOPParser.MinusContext ctx) {
+		out.print("UnOp(-, " + visitExpr(ctx.expr()) + ")");
+		return null;
+	}
+
+	@Override
+	public Void visitIsnull(VSOPParser.IsnullContext ctx) {
+		out.print("UnOp(isnull, " + visitExpr(ctx.expr()) + ")");
+		return null;
+	}
+
+	@Override
+	public Void visitSelfcall(VSOPParser.SelfcallContext ctx) {
+		out.print("Call(self, " + ctx.id.getText() + ", [");
+		for(var ex : ctx.args().ex){
+			visitExpr(ex);
+			out.print(", ");
+		}
+		out.print("]");
+		return null;
+	}
+
+	@Override
+	public Void visitCall(VSOPParser.CallContext ctx) {
+		out.print("Call(" + visitExpr(ctx.expr()) + ", " + ctx.id.getText() + ", [");
+		for(var ex : ctx.args().ex){
+			visitExpr(ex);
+			out.print(", ");
+		}
+		out.print("]");
+		return null;
+	}
+	
+	@Override
+	public Void visitUnit(VSOPParser.UnitContext ctx) {
+		out.print("()");
+		return null;
+	}
+	
+	@Override
+	public Void visitLit(VSOPParser.LitContext ctx) {
+		visitLiteral(ctx.literal());
+		return null;
+	}
+	
+	@Override
+	public Void visitSelf(VSOPParser.SelfContext ctx) {
+		out.print("self");
+		return null;
+	}
+	
+	@Override
+	public Void visitLet(VSOPParser.LetContext ctx) {
+		out.print("Let(" + ctx.id.getText() + ", " +ctx.type().getText() + ", ");
+		if(ctx.as != null){
+			visitExpr(ctx.as);
+			out.print(", ");
+		}
+		visitExpr(ctx.ex);
+		out.print(")");
+		return null;
+	}
+	
+	@Override
+	public Void visitOi(VSOPParser.OiContext ctx) {
+		out.print(ctx.id.getText());
+		return null;
+	}
+	
+	@Override
+	public Void visitIf(VSOPParser.IfContext ctx) {
+		out.print("If(" visitExpr(ctx.ex.get(0)) + ", " + visitExpr(ctx.ex.get(1)));
+		if(len(ctx.ex) == 3){
+			out.print(", " + visitExpr(ctx.ex.get(2)));
+		}
+		out.print(")");
+		return null;
+	}
+	
+	@Override
+	public Void visitBraceExpr(VSOPParser.BraceExprContext ctx) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Void visitBinop(VSOPParser.BinopContext ctx) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
