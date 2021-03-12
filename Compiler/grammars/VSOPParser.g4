@@ -2,10 +2,10 @@ parser grammar VSOPParser;
 options{tokenVocab = VSOPLexer;}
 
 program: clazz+;
-clazz: CLASS TYPE_IDENTIFIER (EXTENDS TYPE_IDENTIFIER)? classBody;
+clazz: CLASS id=TYPE_IDENTIFIER (EXTENDS idext=TYPE_IDENTIFIER)? classBody;
 classBody: LBRACE (field|method)* RBRACE;
-field: OBJECT_IDENTIFIER COLON type (ASSIGN expr)? SEMICOLON;
-method: OBJECT_IDENTIFIER LPAR formals RPAR COLON type block;
+field: id=OBJECT_IDENTIFIER COLON type (ASSIGN expr)? SEMICOLON;
+method: id=OBJECT_IDENTIFIER LPAR formals RPAR COLON type block;
 type
 	: TYPE_IDENTIFIER
 	| INT32
@@ -15,7 +15,7 @@ type
 	;
 
 formals: (formal (COMMA formal)*)?;
-formal: OBJECT_IDENTIFIER COLON type;
+formal: id=OBJECT_IDENTIFIER COLON type;
 block: LBRACE (expr (SEMICOLON expr)*)? RBRACE;
 expr
 	: IF expr THEN expr (ELSE expr)?
