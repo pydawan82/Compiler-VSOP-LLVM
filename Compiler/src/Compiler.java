@@ -110,7 +110,7 @@ public class Compiler {
 		
 		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
 		ParseTree tree = parser.program();
-		CustomVisitor<Object> visitor = new CustomVisitor<>();
+		CustomVisitor visitor = new CustomVisitor();
 		visitor.visit(tree);
 		
 		
@@ -121,34 +121,8 @@ public class Compiler {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		String fName = null;
-		
-		if(args.length==0) {
-			System.err.println("Usage: vsopc -l <SOURCE-FILE>");
-			System.exit(-1);
-		}
-		
-		for(int i=0; i< args.length; i++) {
-			if(args[i].equals("-l") && i<args.length-1) {
-				fName = args[i+1];
-				i++;
-			}
-			else {
-				System.err.println("Unrecognized parameter. Usage: vsopc -lex <SOURCE-FILE>");
-				System.exit(-1);
-				return;
-			}
-		}
-		
-		if(fName == null) {
-			System.err.println("No input file. Usage: vsopc -l <SOURCE-FILE>");
-		}
-		
+		String fName = "vsop-examples/main.vsop";
 		Compiler c = new Compiler(fName);
-		if(c.lex()) {
-			System.exit(0);
-		} else {
-			System.exit(-1);
-		}
+		c.parse();
 	}
 }
