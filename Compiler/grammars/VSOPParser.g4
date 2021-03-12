@@ -1,30 +1,46 @@
 parser grammar VSOPParser;
 options{tokenVocab = VSOPLexer;}
 
-block: LBRACE RBRACE;
+program: clazz+;
+clazz: CLASS TYPE_IDENTIFIER (EXTENDS TYPE_IDENTIFIER)? classBody;
+classBody: LBRACE (field|method)* RBRACE;
+field: OBJECT_IDENTIFIER COLON type (ASSIGN expr)? SEMICOLON;
+method: OBJECT_IDENTIFIER LPAR formals RPAR COLON type block;
 type
 	: TYPE_IDENTIFIER
-	| BOOL
-	| UNIT
 	| INT32
+	| BOOL
 	| STRING
+	| UNIT
 	;
 
-class_declaration: CLASS TYPE_IDENTIFIER (EXTENDS TYPE_IDENTIFIER)? block;
-method_declaration: OBJECT_IDENTIFIER LPAR /* Argument */ RPAR COLON type block;
-
-
-
-assignment: OBJECT_IDENTIFIER ASSIGN expression;
-args
-	: 
-	| expression (COMMA expression)*
-	;
-dispatch
-	: OBJECT_IDENTIFIER DOT OBJECT_IDENTIFIER LPAR args RPAR
+formals: (formal (COMMA formal)*)?;
+formal: OBJECT_IDENTIFIER COLON type;
+block: LBRACE (expr (SEMICOLON expr)*)? RBRACE;
+expr
+	: IF expr THEN expr (ELSE expr)?
+	| WHILE expr DO expr
+	| LET OBJECT_IDENTIFIER COLON type (ASSIGN expr) IN expr
+	| OBJECT_IDENTIFIER ASSIGN expr
+	| NOT expr
+	| expr AND expr
+	| expr (EQUAL|LOWER|LOWER_EQUAL) expr
+	| expr (PLUS|MINUS) expr
+	| expr (TIMES|DIV) expr
+	| expr POW expr
+	| MINUS expr
+	| ISNULL expr
 	| OBJECT_IDENTIFIER LPAR args RPAR
+	| expr DOT OBJECT_IDENTIFIER LPAR args RPAR
+	| NEW TYPE_IDENTIFIER
+	| OBJECT_IDENTIFIER
+	| SELF
+	| literal
+	| RPAR LPAR
+	| LPAR expr RPAR
+	| block
 	;
-conditional: IF expression THEN expression (ELSE expression)?;
-loop: WHILE expression DO expression;
 
-expression:;
+args: (expr (COMMA expr)*)?;
+literal: INTEGER_LITERAL|STRING_LITERAL|booleanLiteral;
+booleanLiteral: TRUE|FALSE;
