@@ -3,10 +3,11 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 
-
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -105,16 +106,30 @@ public class Compiler {
 		err.println();
 	}
 	
+	public void parse() {
+		
+		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
+		ParseTree tree = parser.program();
+		CustomVisitor<Object> visitor = new CustomVisitor<>();
+		visitor.visit(tree);
+		
+		
+	}
+	
+	public void printTree() {
+		
+	}
+	
 	public static void main(String[] args) throws IOException {
 		String fName = null;
 		
 		if(args.length==0) {
-			System.err.println("Usage: vsopc -lex <SOURCE-FILE>");
+			System.err.println("Usage: vsopc -l <SOURCE-FILE>");
 			System.exit(-1);
 		}
 		
 		for(int i=0; i< args.length; i++) {
-			if(args[i].equals("-lex") && i<args.length-1) {
+			if(args[i].equals("-l") && i<args.length-1) {
 				fName = args[i+1];
 				i++;
 			}
@@ -126,7 +141,7 @@ public class Compiler {
 		}
 		
 		if(fName == null) {
-			System.err.println("No input file. Usage: vsopc -lex <SOURCE-FILE>");
+			System.err.println("No input file. Usage: vsopc -l <SOURCE-FILE>");
 		}
 		
 		Compiler c = new Compiler(fName);
