@@ -15,8 +15,9 @@
 ## Part 2: Parser
 
 **Objectives**
-+ ⬜ Generate the syntax tree
-+ ⬜ Generate the syntax errors
-+ ⬜ Test code
++ ✅ Generate the syntax tree
++ ✅ Generate the syntax errors
++ ✅ Test code
++ ⬜ Visitor
 + ⬜ Comment code
 + ⬜ Submit code
