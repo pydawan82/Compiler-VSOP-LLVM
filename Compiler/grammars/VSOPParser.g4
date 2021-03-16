@@ -27,16 +27,16 @@ expr
 	| NEW id=TYPE_IDENTIFIER #new
 	| expr DOT id=OBJECT_IDENTIFIER LPAR args RPAR #call
 	| id=OBJECT_IDENTIFIER LPAR args RPAR #selfcall
+	| expr op=POW expr #binop
 	| ISNULL expr #isnull
 	| MINUS expr #minus
-	| expr op=POW expr #binop
 	| expr op=(TIMES|DIV) expr #binop
 	| expr op=(PLUS|MINUS) expr #binop
 	| expr op=(EQUAL|LOWER|LOWER_EQUAL) expr #binop
-	| expr op=AND expr #binop
 	| NOT expr #not
+	| expr op=AND expr #binop
 	| id=OBJECT_IDENTIFIER ASSIGN expr #ass
-	| LET id=OBJECT_IDENTIFIER COLON type (ASSIGN as=expr) IN ex=expr #let
+	| LET id=OBJECT_IDENTIFIER COLON type (ASSIGN as=expr)? IN ex=expr #let
 	| WHILE expr DO expr #while
 	| IF expr THEN expr (ELSE expr)? #if
 	

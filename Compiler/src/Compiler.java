@@ -124,25 +124,48 @@ public class Compiler {
 		err.println();
 	}
 	
-	public void parse() {
-		
+	public boolean parse() {
+		success = true;
 		ParseTree tree = parser.program();
 		CustomVisitor visitor = new CustomVisitor();
-		try(Chrono c = new Chrono()) {
+		try/*(Chrono c = new Chrono())*/ {
 			visitor.visit(tree);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		
-	}
-	
-	public void printTree() {
-		
+		return success;
 	}
 	
 	public static void main(String[] args) throws IOException {
-		String fName = "vsop-examples/main.vsop";
-		Compiler c = new Compiler(fName);
-		c.parse();
+		String fName;
+		if(args.length != 2) {
+			System.err.println("Usage: vsopc [-l|-p] *input_file*");
+			System.exit(-1);
+			return;
+		}
+		
+		Compiler c = new Compiler(args[1]);
+
+		switch(args[0]) {
+		case "-l":
+			if(c.lex())
+				System.exit(0);
+			else
+				System.exit(-1);
+			return;
+		
+		case "-p":
+			if(c.parse())
+				System.exit(0);
+			else
+				System.exit(-1);
+			return;
+	
+		default:
+			System.err.println("Unrecognized parameter \""+args[0]+"\"");
+			System.exit(-1);
+			return;
+		}
 	}
 }

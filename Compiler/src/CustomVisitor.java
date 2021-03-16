@@ -1,4 +1,4 @@
-import java.io.PrintStream;
+		import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -312,7 +312,9 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 
 	@Override
 	public Void visitAss(VSOPParser.AssContext ctx) {
-		out.print("Assign(" + ctx.id.getText() + ", " + ctx.expr().getText() + ")");
+		out.print("Assign(" + ctx.id.getText() + ", ");
+		visitExpr(ctx.expr());
+		out.print(")");
 		return null;
 	}
 	
@@ -330,25 +332,36 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 	
 	@Override
 	public Void visitWhile(VSOPParser.WhileContext ctx) {
-		out.print("While(" + visitExpr(ctx.expr(1)) + ", " + visitExpr(ctx.expr(2)) + ")");
+		out.print("While(");
+		visitExpr(ctx.expr(0));
+		out.print(", ");
+		visitExpr(ctx.expr(1));
+		out.print(")");
+		
 		return null;
 	}
 	
 	@Override
 	public Void visitNot(VSOPParser.NotContext ctx) {
-		out.print("UnOp(not, " + visitExpr(ctx.expr()) + ")");
+		out.print("UnOp(not, ");
+		visitExpr(ctx.expr());
+		out.print(")");
 		return null;
 	}
 
 	@Override
 	public Void visitMinus(VSOPParser.MinusContext ctx) {
-		out.print("UnOp(-, " + visitExpr(ctx.expr()) + ")");
+		out.print("UnOp(-, " );
+		visitExpr(ctx.expr());
+		out.print(")");
 		return null;
 	}
 
 	@Override
 	public Void visitIsnull(VSOPParser.IsnullContext ctx) {
-		out.print("UnOp(isnull, " + visitExpr(ctx.expr()) + ")");
+		out.print("UnOp(isnull, ");
+		visitExpr(ctx.expr());
+		out.print(")");
 		return null;
 	}
 
@@ -398,7 +411,10 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 	
 	@Override
 	public Void visitLet(VSOPParser.LetContext ctx) {
-		out.print("Let(" + ctx.id.getText() + ", " +ctx.type().getText() + ", ");
+		out.print("Let(" + ctx.id.getText() + ", ");
+		visitType(ctx.type());
+		out.print(", ");
+		
 		if(ctx.as != null){
 			visitExpr(ctx.as);
 			out.print(", ");
@@ -416,10 +432,16 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 	
 	@Override
 	public Void visitIf(VSOPParser.IfContext ctx) {
-		out.print("If("+visitExpr(ctx.expr(0)) + ", " + visitExpr(ctx.expr(1)));
-		if(ctx.expr().size() == 3){
-			out.print(", " + visitExpr(ctx.expr(2)));
+		out.print("If(");
+		visitExpr(ctx.expr(0));
+		out.print(", ");
+		visitExpr(ctx.expr(1));
+		
+		if(ctx.expr(2) != null) {
+			out.print(", ");
+			visitExpr(ctx.expr(2));
 		}
+		
 		out.print(")");
 		return null;
 	}

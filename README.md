@@ -18,6 +18,6 @@
 + ✅ Generate the syntax tree
 + ✅ Generate the syntax errors
 + ✅ Test code
-+ ⬜ Visitor
-+ ⬜ Comment code
-+ ⬜ Submit code
++ ✅ Visitor
++ ✅ Comment code
++ ✅ Submit code
