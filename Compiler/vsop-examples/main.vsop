@@ -28,6 +28,7 @@ class Main {
                                       2, new Nil))) in {
       print("List has length ");
       printInt32(xs.length());
+      if cond then e1;
       print("\n");
       0
     }
