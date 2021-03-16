@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -19,6 +20,7 @@ public class Compiler {
 	private PrintStream out = System.out;
 	private PrintStream err = System.err;
 	private VSOPLexer lexer;
+	private VSOPParser parser;
 	private String fName;
 	private List<String> textTypes = Arrays.asList("INTEGER_LITERAL", "STRING_LITERAL",
 			"OBJECT_IDENTIFIER", "TYPE_IDENTIFIER");
@@ -42,6 +44,17 @@ public class Compiler {
 					int charPositionInLine, String msg, RecognitionException e) {
 				success = false;
 				printTokenError(line, charPositionInLine+1, msg);
+			}
+		});
+		
+		parser = new VSOPParser(new CommonTokenStream(lexer));
+		parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
+		parser.addErrorListener(new BaseErrorListener() {
+			@Override
+			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+					int charPositionInLine, String msg, RecognitionException e) {
+				success = false;
+				printSyntaxError(line, charPositionInLine+1, msg);
 			}
 		});
 		
@@ -106,13 +119,20 @@ public class Compiler {
 		err.println();
 	}
 	
+	private void printSyntaxError(int ln, int cl, String msg) {
+		err.printf("%s:%d:%d: syntax error: %s", fName, ln, cl, msg);
+		err.println();
+	}
+	
 	public void parse() {
 		
-		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
 		ParseTree tree = parser.program();
 		CustomVisitor visitor = new CustomVisitor();
-		visitor.visit(tree);
-		
+		try(Chrono c = new Chrono()) {
+			visitor.visit(tree);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 	}
 	
