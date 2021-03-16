@@ -18,27 +18,28 @@ formals: (formal (COMMA formal)*)?;
 formal: id=OBJECT_IDENTIFIER COLON type;
 block: LBRACE (ex1=expr (SEMICOLON ex2=expr)*)? RBRACE;
 expr
-	: IF ex+=expr THEN ex+=expr (ELSE ex+=expr)? #if
-	| WHILE ex1=expr DO ex2=expr #while
-	| LET id=OBJECT_IDENTIFIER COLON type (ASSIGN as=expr) IN ex=expr #let
-	| id=OBJECT_IDENTIFIER ASSIGN ex=expr #ass
-	| NOT expr #not
-	| expr AND expr #binop
-	| expr (EQUAL|LOWER|LOWER_EQUAL) expr #binop
-	| expr (PLUS|MINUS) expr #binop
-	| expr (TIMES|DIV) expr #binop
-	| expr POW expr #binop
-	| MINUS expr #minus
-	| ISNULL expr #isnull
-	| id=OBJECT_IDENTIFIER LPAR args RPAR #selfcall
-	| expr DOT id=OBJECT_IDENTIFIER LPAR args RPAR #call
-	| NEW id=TYPE_IDENTIFIER #new
-	| id=OBJECT_IDENTIFIER #oi
-	| SELF #self
-	| literal #lit
-	| RPAR LPAR #unit
+	: block #bl
 	| LPAR expr RPAR #braceExpr
-	| block #bl
+	| RPAR LPAR #unit
+	| literal #lit
+	| SELF #self
+	| id=OBJECT_IDENTIFIER #oi
+	| NEW id=TYPE_IDENTIFIER #new
+	| expr DOT id=OBJECT_IDENTIFIER LPAR args RPAR #call
+	| id=OBJECT_IDENTIFIER LPAR args RPAR #selfcall
+	| ISNULL expr #isnull
+	| MINUS expr #minus
+	| expr op=POW expr #binop
+	| expr op=(TIMES|DIV) expr #binop
+	| expr op=(PLUS|MINUS) expr #binop
+	| expr op=(EQUAL|LOWER|LOWER_EQUAL) expr #binop
+	| expr op=AND expr #binop
+	| NOT expr #not
+	| id=OBJECT_IDENTIFIER ASSIGN expr #ass
+	| LET id=OBJECT_IDENTIFIER COLON type (ASSIGN as=expr) IN ex=expr #let
+	| WHILE expr DO expr #while
+	| IF expr THEN expr (ELSE expr)? #if
+	
 	;
 
 args: (ex+=expr (COMMA ex+=expr)*)?;
