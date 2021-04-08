@@ -1,10 +1,13 @@
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import vsop.VSOPClass;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -137,10 +140,26 @@ public class Compiler {
 		return success;
 	}
 	
+	public boolean c() {
+		SemanticError.fName = fName;
+		success = true;
+		VSOPParser.ProgramContext ctx = parser.program();
+		ClassVisitor visitor = new ClassVisitor();
+		try(Chrono c = new Chrono()) {
+			Map<String, VSOPClass> map = visitor.classMap(ctx);
+			SemanticVisitor v = new SemanticVisitor(map);
+			v.visitProgram(ctx);
+			v.flushErrorQueue();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return success;
+	}
+	
 	public static void main(String[] args) throws IOException {
-		String fName;
 		if(args.length != 2) {
-			System.err.println("Usage: vsopc [-l|-p] *input_file*");
+			System.err.println("Usage: vsopc [-l|-p|-c] *input_file*");
 			System.exit(-1);
 			return;
 		}
@@ -157,6 +176,13 @@ public class Compiler {
 		
 		case "-p":
 			if(c.parse())
+				System.exit(0);
+			else
+				System.exit(-1);
+			return;
+			
+		case "-c":
+			if(c.c())
 				System.exit(0);
 			else
 				System.exit(-1);
