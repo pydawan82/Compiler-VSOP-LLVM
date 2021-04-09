@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import vsop.SemanticError;
 import vsop.VSOPClass;
 import vsop.VSOPField;
 import vsop.VSOPMethod;
@@ -32,13 +33,63 @@ public class ClassVisitor {
 			errorList.poll().printError();
 	}
 	
+	private boolean checkCyclicInheritance() {
+		boolean ok = true;
+		
+		for(var key: classMap.keySet()) {
+			VSOPClass cl = classMap.get(key);
+			SemanticError e = cl.checkCyclicInheritance();
+			if(e!=null) {
+				errorList.add(e);
+				ok = false;
+			}
+		}
+		
+		return ok;
+	}
+	
+	private void checkInheritance() {
+		classMap.forEach((name, cl) -> {
+			errorList.addAll(cl.checkFieldInheritance());
+			errorList.addAll(cl.checkMethodInheritance());
+		});
+	}
+	
+	private void checkMain() {
+		VSOPClass main = classMap.get(MAIN_CLASS);
+		if(main == null) {
+			errorList.add(new SemanticError(1, 1,
+					String.format("Could not find class %s", MAIN_CLASS)));
+			return;
+		}
+		
+		VSOPMethod m = main.functions.get(MAIN_METHOD);
+		if(m == null) {
+			errorList.add(new SemanticError(1, 1,
+					String.format("Could not find %s method in class %s", MAIN_METHOD, MAIN_CLASS)));
+			return;
+		}
+		
+		if(!m.args.equals(MAIN_ARGS) || m.ret != MAIN_RET) {
+			errorList.add(new SemanticError(1, 1,
+					String.format("%s method has wrong signature, expected no args and return type %s", MAIN_METHOD, MAIN_RET.id)));
+			return;
+		}
+	}
+	
 	public Map<String, VSOPClass> classMap(VSOPParser.ProgramContext ctx) {
 		
 		visitProgram(ctx);	
 		flushTaskQueue();
+		if(checkCyclicInheritance())
+			checkInheritance();
+		checkMain();
+		
+		boolean ok = errorList.size() == 0;
+		
 		flushErrorQueue();
 		
-		return classMap;
+		return ok ? classMap : null;
 	}
 
 	private Void visitProgram(VSOPParser.ProgramContext ctx) {
@@ -58,16 +109,16 @@ public class ClassVisitor {
 
 		Pair<Map<String, VSOPField>, Map<String, VSOPMethod>> pair = visitClassBody(ctx.classBody());
 		
-		final VSOPClass clazz = new VSOPClass(id, null, pair.first, pair.second);
+		final VSOPClass clazz = new VSOPClass(id, null, pair.first, pair.second, ctx.start.getLine(), ctx.start.getCharPositionInLine());
 		VSOPClass old = classMap.putIfAbsent(id, clazz);
 		if(old != null)
 			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(), 
 					String.format("Class %s is redefined", id)));
 		
 		taskq.add(() -> {
-			clazz.setSuper(classMap.get(superId));
+			clazz.superClass = classMap.get(superId);
 			
-			if(clazz.getSuper() == null)
+			if(clazz.superClass == null)
 				errorList.add(new SemanticError(ctx.idext.getLine(), ctx.idext.getCharPositionInLine(), 
 						String.format("Class %s is undefined", superId)));
 		});
@@ -81,14 +132,22 @@ public class ClassVisitor {
 		
 		for(var field: ctx.field()) {
 			VSOPField f = visitField(field);
-			fields.put(f.name, f);
+			VSOPField old = fields.putIfAbsent(f.name, f);
+			if(old != null) {
+				errorList.add(new SemanticError(field.start.getLine(), field.start.getCharPositionInLine(), 
+						String.format("redefinition of field %s", field.id.getText())));
+			}
 		}
 		
 		Map<String, VSOPMethod> methods = new HashMap<>();
 		
 		for(var method: ctx.method()) {
 			VSOPMethod m = visitMethod(method);
-			methods.put(m.name, m);
+			VSOPMethod old = methods.putIfAbsent(m.name, m);
+			if(old != null) {
+				errorList.add(new SemanticError(method.start.getLine(), method.start.getCharPositionInLine(), 
+						String.format("redefinition of method %s", method.id.getText())));
+			}
 		}
 		
 		return new Pair<>(fields, methods);
@@ -97,7 +156,7 @@ public class ClassVisitor {
 	private VSOPField visitField(VSOPParser.FieldContext ctx) {
 		String id = ctx.id.getText();
 		
-		final VSOPField field = new VSOPField(id, null);
+		final VSOPField field = new VSOPField(id, null, ctx.start.getLine(), ctx.start.getCharPositionInLine());
 		taskq.add(() -> {
 			field.type = getType(ctx.type());
 			if(field.type == null) {
@@ -112,7 +171,7 @@ public class ClassVisitor {
 	private VSOPMethod visitMethod(VSOPParser.MethodContext ctx) {
 		
 		String id = ctx.id.getText();
-		VSOPMethod method = new VSOPMethod(id, null, null);
+		VSOPMethod method = new VSOPMethod(id, null, null, ctx.start.getLine(), ctx.start.getCharPositionInLine());
 		taskq.add(() -> {
 			method.args = getFormals(ctx.formals());
 			method.ret = getType(ctx.type());
@@ -122,16 +181,27 @@ public class ClassVisitor {
 	}
 	
 	private List<VSOPField> getFormals(VSOPParser.FormalsContext ctx) {
+		Map<String,VSOPField> fnames = new HashMap<>();
 		List<VSOPField> args = new ArrayList<VSOPField>();
 		
-		for(var formal: ctx.formal())
-			args.add(getFormal(formal));
+		for(var formal: ctx.formal()) {
+			VSOPField f = getFormal(formal);
+			
+			if(fnames.containsKey(f.name)) {
+				errorList.add(new SemanticError(formal.start.getLine(), formal.start.getCharPositionInLine(),
+						String.format("Duplicate formal %s", f.name)));
+			}
+			
+			fnames.put(f.name, f);
+			
+			args.add(f);
+		}
 		
 		return args;
 	}
 	
 	public VSOPField getFormal(VSOPParser.FormalContext ctx) {
-		return new VSOPField(ctx.id.getText(), getType(ctx.type()));
+		return new VSOPField(ctx.id.getText(), getType(ctx.type()), ctx.start.getLine(), ctx.start.getChannel());
 	}
 	
 	private VSOPType getType(VSOPParser.TypeContext ctx) {

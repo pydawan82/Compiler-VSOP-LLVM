@@ -1,3 +1,4 @@
+package vsop;
 
 public class SemanticError {
 	public static String fName = "";
@@ -18,6 +19,6 @@ public class SemanticError {
 	
 	@Override
 	public String toString() {
-		return String.format("%s:%d:%d: semantic error: %s", fName, ln, col, msg);
+		return String.format("%s:%d:%d: semantic error: %s", fName, ln, col+1, msg);
 	}
 }

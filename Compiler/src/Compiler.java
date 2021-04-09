@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import vsop.SemanticError;
 import vsop.VSOPClass;
 
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -145,11 +146,13 @@ public class Compiler {
 		success = true;
 		VSOPParser.ProgramContext ctx = parser.program();
 		ClassVisitor visitor = new ClassVisitor();
-		try(Chrono c = new Chrono()) {
+		try/*(Chrono c = new Chrono())*/ {
 			Map<String, VSOPClass> map = visitor.classMap(ctx);
-			SemanticVisitor v = new SemanticVisitor(map);
-			v.visitProgram(ctx);
-			v.flushErrorQueue();
+			if(map != null) {
+				SemanticVisitor v = new SemanticVisitor(map);
+				v.visitProgram(ctx);
+				v.flushErrorQueue();
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

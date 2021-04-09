@@ -1,0 +1,8 @@
+class P {
+	i : int32;
+	add(i : int32) : bool {42}
+}
+class C extends P {
+	a : bool;
+	add(i : int32) : int32 {i+42}
+}

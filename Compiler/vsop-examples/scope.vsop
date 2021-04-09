@@ -1,0 +1,11 @@
+class C {
+	main() : int32 {
+	let a : int32 in a;
+	{
+		a+b;
+		let b : int32 in b
+	};
+	let c : int32 <- a+b in c;
+	0
+	}
+}

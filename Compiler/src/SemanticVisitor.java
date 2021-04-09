@@ -1,5 +1,4 @@
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import vsop.SemanticError;
 import vsop.VSOPBinOp;
 import vsop.VSOPClass;
 import vsop.VSOPField;
@@ -228,12 +228,17 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 			params.put(field.name, field.type);
 		
 		vars.push(params);
-		visitBlock(ctx.block());
+		VSOPType ret = visitBlock(ctx.block());
+		out.printf(":%s", ret.id);
 		vars.pop();
 		
 		out.print(')');
 		
 		tab--;
+		
+		if(!ret.canCast(method.ret))
+			errorList.add(new SemanticError(ctx.block().start.getLine(), ctx.block().start.getCharPositionInLine(),
+					String.format("Method should return %s but got %s instead", method.ret.id, ret.id)));
 		
 		return null;
 	}
@@ -306,7 +311,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		}
 		
 		out.print(']');
-		
 		tab--;
 		
 		vars.pop();
@@ -316,7 +320,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 
 	public VSOPType visitExpr(VSOPParser.ExprContext ctx) {
 		VSOPType type = map.get(ctx.getClass()).apply(ctx);
-		out.printf(":%s", (type != null) ? type.id : "null");
+		out.printf(":%s", (type != null) ? type.id : "TYPE IS NULL ALED");
 		return type;
 	}
 
@@ -411,6 +415,12 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		out.print(")");
 		
 		VSOPType varType = vars.peek().get(id);
+		
+		if(varType == null) {
+			VSOPField f = currentClass.fields.get(id);
+			if(f != null)
+				varType = f.type;
+		}
 		
 		if(varType == null)
 			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
@@ -568,22 +578,26 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	public VSOPType visitLet(VSOPParser.LetContext ctx) {
 		
 		String id = ctx.id.getText();
-		
-		vars.peek().put(id, getType(ctx.type()));
+		VSOPType varType = getType(ctx.type());
+		vars.peek().put(id, varType);
 		
 		out.printf("Let(%s, ", id);
 		visitType(ctx.type());
 		out.print(", ");
 		
 		if(ctx.as != null){
-			visitExpr(ctx.as);
+			VSOPType asType = visitExpr(ctx.as);
 			out.print(", ");
+			
+			if(!asType.canCast(varType))
+				errorList.add(new SemanticError(ctx.as.start.getLine(), ctx.as.start.getCharPositionInLine(), 
+						String.format("Cannot convert %s to %s", asType.id, varType.id)));
 		}
 		
-		visitExpr(ctx.ex);
+		VSOPType inType = visitExpr(ctx.ex);
 		out.print(")");
 		
-		return null;
+		return inType;
 	}
 	
 	@Override
@@ -591,13 +605,19 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		String id = ctx.id.getText();
 		
 		VSOPType type = vars.peek().get(id);
-		if(type == null)
-			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getChannel(), 
-					String.format("Variable %s was not declared in this scope.", id)));
+		if(type == null) {
+			VSOPField f = currentClass.fields.get(id);
+			if(f == null)
+				errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getChannel(), 
+						String.format("Variable %s was not declared in this scope.", id)));
+			else {
+				type = f.type;
+			}
+		}
 			
 		out.print(id);
 		
-		return type;
+		return (type != null) ? type : UNIT;
 	}
 	
 	@Override

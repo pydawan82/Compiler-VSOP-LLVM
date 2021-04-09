@@ -1,0 +1,8 @@
+class C {
+	i : int32;
+	s : string;
+	i : bool;
+	
+	f() : bool {true}
+	f() : int32 {"Salut"}
+}

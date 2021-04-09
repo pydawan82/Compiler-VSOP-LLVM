@@ -1,6 +1,5 @@
 package vsop;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,15 +12,15 @@ public class VSOPConstants {
 			Map.of(INT32.id, INT32, STRING.id, STRING, UNIT.id, UNIT, BOOL.id, BOOL);
 	public static final List<VSOPType> primitiveTypes = List.of(INT32, STRING, UNIT, BOOL);
 	
-	public static final VSOPClass OBJECT = new VSOPClass("Object", null, Map.of(), new HashMap<>());
+	public static final VSOPClass OBJECT = new VSOPClass("Object", null, Map.of(), Map.of(), 0, 0);
 	
-	private static final VSOPMethod print = new VSOPMethod("print", List.of(new VSOPField("s", STRING)), OBJECT);
-	private static final VSOPMethod printBool = new VSOPMethod("printBool", List.of(new VSOPField("s", STRING)), OBJECT);
-	private static final VSOPMethod printInt32 = new VSOPMethod("printInt32", List.of(new VSOPField("s", STRING)), OBJECT);
+	private static final VSOPMethod print = new VSOPMethod("print", List.of(new VSOPField("s", STRING, 0, 0)), OBJECT, 0, 0);
+	private static final VSOPMethod printBool = new VSOPMethod("printBool", List.of(new VSOPField("s", STRING, 0, 0)), OBJECT, 0, 0);
+	private static final VSOPMethod printInt32 = new VSOPMethod("printInt32", List.of(new VSOPField("s", STRING, 0, 0)), OBJECT, 0, 0);
 	
-	private static final VSOPMethod inputLine = new VSOPMethod("inputLine", List.of(new VSOPField("s", STRING)), OBJECT);
-	private static final VSOPMethod inputBool = new VSOPMethod("inputBool", List.of(new VSOPField("s", STRING)), OBJECT);
-	private static final VSOPMethod inputInt32 = new VSOPMethod("inputInt32", List.of(new VSOPField("s", STRING)), OBJECT);
+	private static final VSOPMethod inputLine = new VSOPMethod("inputLine", List.of(new VSOPField("s", STRING, 0, 0)), STRING, 0, 0);
+	private static final VSOPMethod inputBool = new VSOPMethod("inputBool", List.of(new VSOPField("s", STRING, 0, 0)), BOOL, 0, 0);
+	private static final VSOPMethod inputInt32 = new VSOPMethod("inputInt32", List.of(new VSOPField("s", STRING, 0, 0)), INT32, 0, 0);
 	
 	static {
 		OBJECT.functions.putAll(Map.of(
@@ -57,4 +56,9 @@ public class VSOPConstants {
 			TIMES.id, TIMES, 
 			DIV.id, DIV, 
 			POW.id, POW);
+	
+	public static final String MAIN_CLASS = "Main";
+	public static final String MAIN_METHOD = "main";
+	public static final List<VSOPType> MAIN_ARGS = List.of();
+	public static final VSOPType MAIN_RET = INT32;
 }

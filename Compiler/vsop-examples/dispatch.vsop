@@ -1,0 +1,18 @@
+class A {
+	a: int32;
+	f() : bool {true}
+}
+
+class B extends A {}
+
+class C {
+	f() : int32 {0}
+	
+	main(): int32 {
+		let a : A <- (new B) in a;
+		a.f();
+		1 + 1;
+		var;
+		0
+	}
+}

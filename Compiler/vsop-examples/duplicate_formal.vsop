@@ -1,0 +1,3 @@
+class C {
+	f(n:int32, b: bool, n: string): bool {false}
+}

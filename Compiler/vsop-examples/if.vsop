@@ -1,0 +1,10 @@
+class Main {
+
+	main(): int32 {
+	
+	if inputInt32() = 0 then 42 else false;
+	
+	0
+	}
+
+}
