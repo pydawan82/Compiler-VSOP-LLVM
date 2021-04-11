@@ -39,14 +39,15 @@ public class VSOPClass extends VSOPType {
 	public List<SemanticError> checkFieldInheritance() {
 		List<SemanticError> errors = new LinkedList<>();
 		
-		for(VSOPClass c = superClass; c!= null; c = c.superClass) {
-			for(String key: c.fields.keySet()) {
-				VSOPField f = c.fields.get(key);
-				VSOPField old = fields.put(key, f);
-				if(old != null)
-					errors.add(new SemanticError(f.ln, f.col,
-							String.format("field %s in class %s is redefined in %s", f.name, c.id, this.id)));
-			}
+		if(superClass == null)
+			return errors;
+		
+		for(String key: superClass.fields.keySet()) {
+			VSOPField f = superClass.fields.get(key);
+			VSOPField old = fields.put(key, f);
+			if(old != null)
+				errors.add(new SemanticError(f.ln, f.col,
+						String.format("field %s is redefined in %s", f.name, this.id)));
 		}
 		
 		return errors;
@@ -55,15 +56,16 @@ public class VSOPClass extends VSOPType {
 	public List<SemanticError> checkMethodInheritance() {
 		List<SemanticError> errors = new LinkedList<>();
 		
-		for(VSOPClass c = superClass; c!= null; c = c.superClass) {
-			for(String key: c.functions.keySet()) {
-				VSOPMethod m = c.functions.get(key);
-				VSOPMethod old = functions.putIfAbsent(key, m);
-				if(old!=null && (!m.args.equals(old.args) || m.ret != old.ret))
-					errors.add(new SemanticError(m.ln, m.col,
-							String.format("method %s in class %s is redefined in %s with wrong signature", m.name, c.id, this.id)));
-					
-			}
+		if(superClass == null)
+			return errors;
+		
+		for(String key: superClass.functions.keySet()) {
+			VSOPMethod m = superClass.functions.get(key);
+			VSOPMethod old = functions.putIfAbsent(key, m);
+			if(old!=null && (!m.args.equals(old.args) || m.ret != old.ret))
+				errors.add(new SemanticError(m.ln, m.col,
+						String.format("method %s is redefined in class %s with wrong signature", m.name, this.id)));
+				
 		}
 		
 		return errors;

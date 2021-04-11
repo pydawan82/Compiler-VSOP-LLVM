@@ -16,11 +16,12 @@ import static vsop.VSOPConstants.*;
 
 public class ClassVisitor {
 	private Queue<Runnable> taskq = new LinkedList<>();
-	private Map<String, VSOPClass> classMap = new HashMap<>();
+	private Map<String, Node<VSOPClass>> classMap = new HashMap<>();
 	private Queue<SemanticError> errorList = new LinkedList<SemanticError>();
+	private Tree<VSOPClass> classTree = new Tree<>(OBJECT);
 	
 	public ClassVisitor() {
-		classMap.put(OBJECT.id, OBJECT);
+		classMap.put(OBJECT.id, classTree.root);
 	}
 	
 	private void flushTaskQueue() {
@@ -37,7 +38,7 @@ public class ClassVisitor {
 		boolean ok = true;
 		
 		for(var key: classMap.keySet()) {
-			VSOPClass cl = classMap.get(key);
+			VSOPClass cl = classMap.get(key).value;
 			SemanticError e = cl.checkCyclicInheritance();
 			if(e!=null) {
 				errorList.add(e);
@@ -49,21 +50,21 @@ public class ClassVisitor {
 	}
 	
 	private void checkInheritance() {
-		classMap.forEach((name, cl) -> {
+		classTree.visit(cl -> {
 			errorList.addAll(cl.checkFieldInheritance());
 			errorList.addAll(cl.checkMethodInheritance());
 		});
 	}
 	
 	private void checkMain() {
-		VSOPClass main = classMap.get(MAIN_CLASS);
+		Node<VSOPClass> main = classMap.get(MAIN_CLASS);
 		if(main == null) {
 			errorList.add(new SemanticError(1, 1,
 					String.format("Could not find class %s", MAIN_CLASS)));
 			return;
 		}
 		
-		VSOPMethod m = main.functions.get(MAIN_METHOD);
+		VSOPMethod m = main.value.functions.get(MAIN_METHOD);
 		if(m == null) {
 			errorList.add(new SemanticError(1, 1,
 					String.format("Could not find %s method in class %s", MAIN_METHOD, MAIN_CLASS)));
@@ -89,7 +90,10 @@ public class ClassVisitor {
 		
 		flushErrorQueue();
 		
-		return ok ? classMap : null;
+		final Map<String, VSOPClass> map = new HashMap<>();
+		classMap.forEach((key, node) -> {map.put(key, node.value);});
+		
+		return ok ? map : null;
 	}
 
 	private Void visitProgram(VSOPParser.ProgramContext ctx) {
@@ -110,17 +114,22 @@ public class ClassVisitor {
 		Pair<Map<String, VSOPField>, Map<String, VSOPMethod>> pair = visitClassBody(ctx.classBody());
 		
 		final VSOPClass clazz = new VSOPClass(id, null, pair.first, pair.second, ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		VSOPClass old = classMap.putIfAbsent(id, clazz);
+		Node<VSOPClass> node = new Node<>(clazz);
+		Node<VSOPClass> old = classMap.putIfAbsent(id, node);
 		if(old != null)
 			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(), 
 					String.format("Class %s is redefined", id)));
 		
 		taskq.add(() -> {
-			clazz.superClass = classMap.get(superId);
+			Node<VSOPClass> parent = classMap.get(superId);
 			
-			if(clazz.superClass == null)
+			if(parent == null)
 				errorList.add(new SemanticError(ctx.idext.getLine(), ctx.idext.getCharPositionInLine(), 
 						String.format("Class %s is undefined", superId)));
+			else {
+				clazz.superClass = parent.value;
+				parent.childs.add(node);
+			}
 		});
 		
 		return clazz;
@@ -210,10 +219,10 @@ public class ClassVisitor {
 		
 		if(type != null)
 			return type;
+
+		Node<VSOPClass> node = classMap.get(txt);
 		
-		type = classMap.get(txt);
-		
-		if(type == null)
+		if(node == null || (type=node.value) == null)
 			errorList.add(new SemanticError(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(), 
 					String.format("Type %s is undefined", ctx.getText())));
 		

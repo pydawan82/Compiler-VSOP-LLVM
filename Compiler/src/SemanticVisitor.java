@@ -35,8 +35,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	VSOPClass currentClass;
 	
 	Queue<SemanticError> errorList = new LinkedList<>();
-
-	Stack<Map<String, VSOPType>> vars = new Stack<>();
+	VariableStack varStack = new VariableStack();
 	Stack<VSOPMethod> methodStack = new Stack<>();
 	
 	public SemanticVisitor(Map<String, VSOPClass> classMap) {
@@ -194,9 +193,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		if(ctx.expr() != null) {
 			out.print(", ");
-			vars.push(new HashMap<>());
 			visitExpr(ctx.expr());
-			vars.pop();
 		}
 		
 		out.print(')');
@@ -221,15 +218,16 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		visitType(ctx.type());
 		out.print(", ");
 		
-		Map<String, VSOPType> params = new HashMap<>();
 		VSOPMethod method = currentClass.functions.get(id);
 		for(var field: method.args)
-			params.put(field.name, field.type);
+			varStack.push(field.name, field.type);
 		
-		vars.push(params);
+		
 		VSOPType ret = visitBlock(ctx.block());
 		out.printf(":%s", ret.id);
-		vars.pop();
+
+		for(var field: method.args)
+			varStack.pop(field.name);
 		
 		out.print(')');
 		
@@ -280,11 +278,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	@Override
 	public VSOPType visitBlock(VSOPParser.BlockContext ctx) {
 		
-		Map<String, VSOPType> localVars = new HashMap<>();
-		if(!vars.isEmpty())
-			localVars.putAll(vars.peek());
-		vars.push(localVars);
-		
 		tab++;
 		
 		out.print('[');
@@ -311,8 +304,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		out.print(']');
 		tab--;
-		
-		vars.pop();
 		
 		return type;
 	}
@@ -419,7 +410,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		VSOPType exprType = visitExpr(ctx.expr());
 		out.print(")");
 		
-		VSOPType varType = (vars.isEmpty()) ? null : vars.peek().get(id);
+		VSOPType varType = varStack.get(id);
 		
 		if(varType == null) {
 			VSOPField f = currentClass.fields.get(id);
@@ -518,7 +509,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		}
 		
 		
-		out.print("Call(self, " + ctx.id.getText() + ", ");
+		out.printf("Call(self: %s, %s, ", currentClass.id, ctx.id.getText());
 
 		methodStack.push(method);
 		visitArgs(ctx.args());
@@ -584,8 +575,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		String id = ctx.id.getText();
 		VSOPType varType = getType(ctx.type());
-		if(!vars.isEmpty())
-			vars.peek().put(id, varType);
+		varStack.push(id, varType);
 		
 		out.printf("Let(%s, ", id);
 		visitType(ctx.type());
@@ -603,6 +593,8 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		VSOPType inType = visitExpr(ctx.ex);
 		out.print(")");
 		
+		varStack.pop(id);
+		
 		return inType;
 	}
 	
@@ -610,7 +602,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	public VSOPType visitOi(VSOPParser.OiContext ctx) {
 		String id = ctx.id.getText();
 		
-		VSOPType type = (vars.isEmpty()) ? null : vars.peek().get(id);
+		VSOPType type = varStack.get(id);
 		
 		if(type == null) {
 			VSOPField f = currentClass.fields.get(id);

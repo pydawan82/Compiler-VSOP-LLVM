@@ -3,3 +3,10 @@ class MyClass {
     myField : bool <- (new A) = (new A);
 }
 class Main { main() : int32 { 0 } }
+
+
+let x: int32 in {
+	let x: bool in {
+		
+	}
+}
