@@ -145,14 +145,20 @@ public class Compiler {
 		SemanticError.fName = fName;
 		success = true;
 		VSOPParser.ProgramContext ctx = parser.program();
+		if(ctx == null) {
+			err.println(new SemanticError(0, 0, "Input is not a valid program"));
+			return false;
+		}
 		ClassVisitor visitor = new ClassVisitor();
 		try/*(Chrono c = new Chrono())*/ {
 			Map<String, VSOPClass> map = visitor.classMap(ctx);
-			if(map != null) {
-				SemanticVisitor v = new SemanticVisitor(map);
-				v.visitProgram(ctx);
-				v.flushErrorQueue();
-			}
+			if(map == null)
+				return false;
+			
+			SemanticVisitor v = new SemanticVisitor(map);
+			v.visitProgram(ctx);
+			success = v.errorList.isEmpty();
+			v.flushErrorQueue();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

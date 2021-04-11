@@ -79,19 +79,16 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 
 	@Override
 	public Void visitChildren(RuleNode arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Void visitErrorNode(ErrorNode arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Void visitTerminal(TerminalNode arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -197,7 +194,9 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		if(ctx.expr() != null) {
 			out.print(", ");
+			vars.push(new HashMap<>());
 			visitExpr(ctx.expr());
+			vars.pop();
 		}
 		
 		out.print(')');
@@ -320,7 +319,9 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 
 	public VSOPType visitExpr(VSOPParser.ExprContext ctx) {
 		VSOPType type = map.get(ctx.getClass()).apply(ctx);
-		out.printf(":%s", (type != null) ? type.id : "TYPE IS NULL ALED");
+		
+		if(ctx.getClass() != VSOPParser.BraceExprContext.class)
+			out.printf(":%s", (type != null) ? type.id : "null");
 		return type;
 	}
 
@@ -371,14 +372,18 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 			return BOOL;
 		}
 		
-		System.err.println("UNEXPECTED BRANCH!!!!");
+		if(ctx.LPAR() != null) {
+			return UNIT;
+		}
+		
+		System.err.println("UNEXPECTED BRANCH!");
 		
 		return null;
 	}
 
 	@Override
 	public Void visitBooleanLiteral(VSOPParser.BooleanLiteralContext ctx) {
-		System.err.println("UNEXPECTED BRANCH!!!! 2");
+		System.err.println("UNEXPECTED BRANCH! 2");
 		
 		return null;
 	}
@@ -414,7 +419,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		VSOPType exprType = visitExpr(ctx.expr());
 		out.print(")");
 		
-		VSOPType varType = vars.peek().get(id);
+		VSOPType varType = (vars.isEmpty()) ? null : vars.peek().get(id);
 		
 		if(varType == null) {
 			VSOPField f = currentClass.fields.get(id);
@@ -579,7 +584,8 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		String id = ctx.id.getText();
 		VSOPType varType = getType(ctx.type());
-		vars.peek().put(id, varType);
+		if(!vars.isEmpty())
+			vars.peek().put(id, varType);
 		
 		out.printf("Let(%s, ", id);
 		visitType(ctx.type());
@@ -604,7 +610,8 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	public VSOPType visitOi(VSOPParser.OiContext ctx) {
 		String id = ctx.id.getText();
 		
-		VSOPType type = vars.peek().get(id);
+		VSOPType type = (vars.isEmpty()) ? null : vars.peek().get(id);
+		
 		if(type == null) {
 			VSOPField f = currentClass.fields.get(id);
 			if(f == null)
@@ -633,27 +640,27 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		out.print(", ");
 		
 		VSOPType type1 = visitExpr(ctx.expr(1));
-		
+		VSOPType type2;
 		if(ctx.expr(2) != null) {
 			out.print(", ");
-			VSOPType type2 = visitExpr(ctx.expr(2));
-			
-			if(type1 instanceof VSOPClass && type2 instanceof VSOPClass) {
-				return VSOPClass.commonAncestor((VSOPClass) type1, (VSOPClass) type2);
-			} else if(type1 == UNIT || type2 == UNIT) {
-				return UNIT;
-			} else if(type1==type2) {
-				return type1;
-			} else {
-				errorList.add(new SemanticError(ctx.start.getLine(), ctx.start.getCharPositionInLine(), 
-						String.format("Type %s and %s does not match", type1.id, type2.id)));
-				return UNIT;
-			}
+			type2 = visitExpr(ctx.expr(2));
+		} else {
+			type2 = UNIT;
 		}
 		
 		out.print(")");
-		
-		return type1;
+			
+		if(type1 instanceof VSOPClass && type2 instanceof VSOPClass) {
+			return VSOPClass.commonAncestor((VSOPClass) type1, (VSOPClass) type2);
+		} else if(type1 == UNIT || type2 == UNIT) {
+			return UNIT;
+		} else if(type1==type2) {
+			return type1;
+		} else {
+			errorList.add(new SemanticError(ctx.start.getLine(), ctx.start.getCharPositionInLine(), 
+					String.format("Type %s and %s does not match", type1.id, type2.id)));
+			return UNIT;
+		}
 	}
 	
 	@Override
@@ -673,8 +680,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		VSOPBinOp binOp = binOpMap.get(op);
 		if(binOp == null) {
-			//TODO Remove
-			throw new RuntimeException("WTF C pas normal");
+			throw new RuntimeException("Operator not found");
 		}
 		
 		if(binOp == EQ) {

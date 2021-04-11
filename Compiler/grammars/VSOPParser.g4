@@ -43,5 +43,10 @@ expr
 	;
 
 args: (ex+=expr (COMMA ex+=expr)*)?;
-literal: INTEGER_LITERAL|STRING_LITERAL|booleanLiteral;
+literal
+	: LPAR RPAR
+	|INTEGER_LITERAL
+	|STRING_LITERAL
+	|booleanLiteral;
+
 booleanLiteral: TRUE|FALSE;

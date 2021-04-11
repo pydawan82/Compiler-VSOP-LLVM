@@ -160,8 +160,8 @@ public class ClassVisitor {
 		taskq.add(() -> {
 			field.type = getType(ctx.type());
 			if(field.type == null) {
-				//TODO GENERER UN VRAIE ERREUR
-				System.err.print("type undefined");
+				errorList.add(new SemanticError(field.ln, field.col,
+						String.format("Undefined type %s for field %s", ctx.type().getText(), field.name)));
 			}
 		});
 		

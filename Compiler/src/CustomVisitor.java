@@ -58,19 +58,16 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 
 	@Override
 	public Void visitChildren(RuleNode arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Void visitErrorNode(ErrorNode arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Void visitTerminal(TerminalNode arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
