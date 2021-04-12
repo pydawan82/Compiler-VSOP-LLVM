@@ -116,7 +116,7 @@ public class VSOPClass extends VSOPType {
 		}
 		
 		VSOPClass common = null;
-		 while(!s1.isEmpty() && !s2.isEmpty() && s1.peek() == s2.peek()); {
+		 while(!s1.isEmpty() && !s2.isEmpty() && s1.peek() == s2.peek()) {
 			common = s1.pop();
 			s2.pop();
 		}

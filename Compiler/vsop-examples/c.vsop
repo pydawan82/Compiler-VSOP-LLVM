@@ -1,6 +1,7 @@
-class C {
-	f() : int32 {
-		"an ignored string";
-		let x : bool <- { 1; "a" } in not x // Last expression of block
-	}
+class A {
+    needsTwoArgs(i : int32, b : bool) : int32 { if b then i else 42 }
 }
+class MyClass {
+    myMethod() : int32 { (new A).needsTwoArgs(666) }
+}
+class Main { main() : int32 { 0 } }

@@ -31,12 +31,13 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	int tab = -1;
 	String tabs = "\t";
 	
-	Map<String, VSOPClass> classMap = new HashMap<>();
-	VSOPClass currentClass;
+	private Map<String, VSOPClass> classMap = new HashMap<>();
+	private VSOPClass currentClass;
+	private boolean inFieldInit = false;
 	
-	Queue<SemanticError> errorList = new LinkedList<>();
-	VariableStack varStack = new VariableStack();
-	Stack<VSOPMethod> methodStack = new Stack<>();
+	public Queue<SemanticError> errorList = new LinkedList<>();
+	private VariableStack varStack = new VariableStack();
+	private Stack<VSOPMethod> methodStack = new Stack<>();
 	
 	public SemanticVisitor(Map<String, VSOPClass> classMap) {
 		map.put(VSOPParser.IfContext.class, (ParserRuleContext c) -> visitIf((VSOPParser.IfContext)c));
@@ -185,6 +186,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	@Override
 	public Void visitField(VSOPParser.FieldContext ctx) {
 		tab++;
+		inFieldInit = true;
 		
 		String id = ctx.id.getText();
 		
@@ -193,12 +195,17 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		if(ctx.expr() != null) {
 			out.print(", ");
-			visitExpr(ctx.expr());
+			VSOPType fType = getType(ctx.type());
+			VSOPType exprType = visitExpr(ctx.expr());
+			if(!exprType.canCast(fType))
+				errorList.add(new SemanticError(ctx.expr().start.getLine(), ctx.expr().start.getCharPositionInLine(),
+						String.format("cannot cast %s to %s", exprType.id, fType.id)));
 		}
 		
 		out.print(')');
 		tab--;
 		
+		inFieldInit = false;
 		return null;
 	}
 
@@ -321,15 +328,29 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		tab++;
 		
 		out.print("[");
+
+		VSOPMethod method = methodStack.peek();
+		
+		if(method != null && method.args.size() != ctx.expr().size()) {
+			errorList.add(new SemanticError(ctx.start.getLine(), ctx.start.getLine(), 
+					String.format("method %s expected %d args but got %d", method.name, method.args.size(), ctx.expr().size())));
+		}
 		
 		int i=0;
 		for(var expr: ctx.expr()) {
-			i++;
 			
 			out.println();
 			printTab();
 			
-			visitExpr(expr);
+			VSOPType argType = visitExpr(expr);
+			if(method != null && i<method.args.size()) {
+				if(!argType.canCast(method.args.get(i).type)) {
+					errorList.add(new SemanticError(ctx.expr(i).start.getLine(), ctx.expr(i).start.getCharPositionInLine(), 
+							String.format("cannot cast from %s to %s", argType.id, method.args.get(i).type.id)));
+				}
+			}
+			
+			i++;
 			
 			if(i != ctx.expr().size()) {
 				out.print(",");
@@ -380,17 +401,18 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	}
 
 	public VSOPType getType(VSOPParser.TypeContext ctx) {
-		String txt = ctx.getText();
-		VSOPType type = primitiveTypeMap.get(txt);
+		String typeStr = ctx.getText();
+		VSOPType type = primitiveTypeMap.get(typeStr);
 		
 		if(type != null) {
 			return type;
 		}
 		
-		type = classMap.get(txt);
+		type = classMap.get(typeStr);
 		
 		if(type == null) {
-			errorList.add(null);
+			errorList.add(new SemanticError(ctx.start.getLine(), ctx.start.getCharPositionInLine(),
+					String.format("Type %s is undefined", typeStr)));
 		}
 		
 		return type;
@@ -422,11 +444,11 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
 					String.format("Variable %s is not declared in this scope.", id)));
 		
-		if(varType != exprType)
+		if(varType!=null && exprType.canCast(varType))
 			errorList.add(new SemanticError(ctx.expr().getStart().getLine(), ctx.expr().getStart().getCharPositionInLine(),
 					"Expression type does not match variable type"));
 		
-		return varType;
+		return (varType != null) ? varType : exprType;
 	}
 	
 	@Override
@@ -440,7 +462,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(), 
 					String.format("Invalid type indentifier %s", id)));
 		
-		return type;
+		return (type!=null) ? type: OBJECT;
 	}
 	
 	@Override
@@ -451,10 +473,14 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 	@Override
 	public VSOPType visitWhile(VSOPParser.WhileContext ctx) {
 		out.print("While(");
-		visitExpr(ctx.expr(0));
+		VSOPType condType = visitExpr(ctx.expr(0));
 		out.print(", ");
 		visitExpr(ctx.expr(1));
 		out.print(")");
+		
+		if(!condType.canCast(BOOL))
+			errorList.add(new SemanticError(ctx.expr(0).start.getLine(), ctx.expr(0).start.getCharPositionInLine(), 
+					String.format("Expected %s but got type %s", BOOL.id, condType.id)));
 		
 		return UNIT;
 	}
@@ -503,7 +529,10 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		String id = ctx.id.getText();
 		
 		VSOPMethod method = currentClass.functions.get(id);
-		if(method == null) {
+		if(inFieldInit) {
+			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
+					"illegal call to self in field initializer"));
+		} else if(method == null) {
 			errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
 					String.format("method %s is undefined for type %s", id, currentClass.id)));
 		}
@@ -606,10 +635,10 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		
 		if(type == null) {
 			VSOPField f = currentClass.fields.get(id);
-			if(f == null)
+			if(f == null || inFieldInit) {
 				errorList.add(new SemanticError(ctx.id.getLine(), ctx.id.getChannel(), 
-						String.format("Variable %s was not declared in this scope.", id)));
-			else {
+						String.format("Variable %s is not declared in this scope", id)));
+			} else {
 				type = f.type;
 			}
 		}
