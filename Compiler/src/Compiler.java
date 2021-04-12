@@ -26,31 +26,32 @@ public class Compiler {
 	private VSOPLexer lexer;
 	private VSOPParser parser;
 	private String fName;
-	private List<String> textTypes = Arrays.asList("INTEGER_LITERAL", "STRING_LITERAL",
-			"OBJECT_IDENTIFIER", "TYPE_IDENTIFIER");
+	private List<String> textTypes = Arrays.asList("INTEGER_LITERAL", "STRING_LITERAL", "OBJECT_IDENTIFIER",
+			"TYPE_IDENTIFIER");
 
 	private boolean success = false;
-	
+
 	/**
 	 * Creates a new Compiler that will comile the given file.
+	 * 
 	 * @param fName - The name of the file
-	 * @throws IOException if an I/O error occurs. 
+	 * @throws IOException if an I/O error occurs.
 	 */
 	public Compiler(String fName) throws IOException {
 		CharStream input = CharStreams.fromFileName(fName);
 		lexer = new VSOPLexer(input);
 		this.fName = fName;
-		
+
 		lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
 		lexer.addErrorListener(new BaseErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
 					int charPositionInLine, String msg, RecognitionException e) {
 				success = false;
-				printTokenError(line, charPositionInLine+1, msg);
+				printTokenError(line, charPositionInLine + 1, msg);
 			}
 		});
-		
+
 		parser = new VSOPParser(new CommonTokenStream(lexer));
 		parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
 		parser.addErrorListener(new BaseErrorListener() {
@@ -58,38 +59,41 @@ public class Compiler {
 			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
 					int charPositionInLine, String msg, RecognitionException e) {
 				success = false;
-				printSyntaxError(line, charPositionInLine+1, msg);
+				printSyntaxError(line, charPositionInLine + 1, msg);
 			}
 		});
-		
+
 	}
-	
+
 	/**
-	 * Lex the file given to the Compiler,
-	 * Outputs tokens on System.out and the lexical errors on System.err
-	 * @return <code>true</code> if the lexing terminated withou any error, <code>false</code> otherwise.
+	 * Lex the file given to the Compiler, Outputs tokens on System.out and the
+	 * lexical errors on System.err
+	 * 
+	 * @return <code>true</code> if the lexing terminated withou any error,
+	 *         <code>false</code> otherwise.
 	 */
 	public boolean lex() {
 		success = true;
 		Vocabulary voc = lexer.getVocabulary();
-		while(true) {
+		while (true) {
 			Token t = lexer.nextToken();
-			if(t.getType() == -1)
+			if (t.getType() == -1)
 				break;
-			
+
 			String txt = null;
-			if(textTypes.contains(voc.getSymbolicName(t.getType())))
-					txt = t.getText();
-			
-			printToken(t.getLine(), t.getCharPositionInLine()+1, toLowerCase(voc.getSymbolicName(t.getType())), txt);
+			if (textTypes.contains(voc.getSymbolicName(t.getType())))
+				txt = t.getText();
+
+			printToken(t.getLine(), t.getCharPositionInLine() + 1, toLowerCase(voc.getSymbolicName(t.getType())), txt);
 		}
-	
+
 		return success;
 	}
-	
+
 	/**
-	 * Returns the lowercase version of the token name in order to
-	 * respect naming convetions.
+	 * Returns the lowercase version of the token name in order to respect naming
+	 * convetions.
+	 * 
 	 * @param tokenName - The name of the token
 	 * @return The lower caser version of the token
 	 */
@@ -97,108 +101,112 @@ public class Compiler {
 		String lower = tokenName.toLowerCase();
 		return lower.replace('_', '-');
 	}
-	
+
 	/**
 	 * Prints the token on System.out
-	 * @param ln - The line of the first char of the token
-	 * @param cl - The column of the first char of the token
+	 * 
+	 * @param ln   - The line of the first char of the token
+	 * @param cl   - The column of the first char of the token
 	 * @param type - The name of the type of the token
 	 * @param text - The text of the token or null if nothing should not be printed
 	 */
 	private void printToken(int ln, int cl, String type, String text) {
-			out.printf("%d,%d,%s", ln, cl, type);
-			if(text != null)
-				out.printf(",%s", text);
-			out.println();
+		out.printf("%d,%d,%s", ln, cl, type);
+		if (text != null)
+			out.printf(",%s", text);
+		out.println();
 	}
-	
+
 	/**
 	 * Prints the token error on System.err
-	 * @param ln - The line of the error
-	 * @param cl - The column of the error
+	 * 
+	 * @param ln  - The line of the error
+	 * @param cl  - The column of the error
 	 * @param msg - The message representing the error
 	 */
 	private void printTokenError(int ln, int cl, String msg) {
 		err.printf("%s:%d:%d: lexical error: %s", fName, ln, cl, msg);
 		err.println();
 	}
-	
+
 	private void printSyntaxError(int ln, int cl, String msg) {
 		err.printf("%s:%d:%d: syntax error: %s", fName, ln, cl, msg);
 		err.println();
 	}
-	
+
 	public boolean parse() {
 		success = true;
 		ParseTree tree = parser.program();
 		CustomVisitor visitor = new CustomVisitor();
-		try/*(Chrono c = new Chrono())*/ {
+		try/* (Chrono c = new Chrono()) */ {
 			visitor.visit(tree);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return success;
 	}
-	
-	public boolean c() {
+
+	public boolean compile() {
 		SemanticError.fName = fName;
 		success = true;
 		VSOPParser.ProgramContext ctx = parser.program();
-		if(ctx == null) {
-			err.println(new SemanticError(0, 0, "Input is not a valid program"));
+		
+		if (ctx == null) {
+			err.println(new SemanticError("Input is not a valid program"));
 			return false;
 		}
+		
 		ClassVisitor visitor = new ClassVisitor();
-		try/*(Chrono c = new Chrono())*/ {
+		try/* (Chrono c = new Chrono()) */ {
 			Map<String, VSOPClass> map = visitor.classMap(ctx);
-			if(map == null)
+			if (map == null)
 				return false;
-			
+
 			SemanticVisitor v = new SemanticVisitor(map);
 			v.visitProgram(ctx);
-			success = v.errorList.isEmpty();
+			success = v.errorQueue.isEmpty();
 			v.flushErrorQueue();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return success;
 	}
-	
+
 	public static void main(String[] args) throws IOException {
-		if(args.length != 2) {
+		if (args.length != 2) {
 			System.err.println("Usage: vsopc [-l|-p|-c] *input_file*");
 			System.exit(-1);
 			return;
 		}
-		
+
 		Compiler c = new Compiler(args[1]);
 
-		switch(args[0]) {
+		switch (args[0]) {
 		case "-l":
-			if(c.lex())
+			if (c.lex())
 				System.exit(0);
 			else
 				System.exit(-1);
 			return;
-		
+
 		case "-p":
-			if(c.parse())
+			if (c.parse())
 				System.exit(0);
 			else
 				System.exit(-1);
 			return;
-			
+
 		case "-c":
-			if(c.c())
+			if (c.compile())
 				System.exit(0);
 			else
 				System.exit(-1);
 			return;
-	
+
 		default:
-			System.err.println("Unrecognized parameter \""+args[0]+"\"");
+			System.err.println("Unrecognized parameter \"" + args[0] + "\"");
 			System.exit(-1);
 			return;
 		}

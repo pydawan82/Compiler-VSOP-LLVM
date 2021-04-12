@@ -1,18 +1,22 @@
 package vsop;
 
 public class VSOPField {
-	
+
 	public final String name;
 	public VSOPType type;
-	
-	public final int ln,col;
-	
+
+	public final int ln, col;
+
 	public VSOPField(String name, VSOPType type, int ln, int col) {
 		this.name = name;
 		this.type = type;
-		
+
 		this.ln = ln;
 		this.col = col;
+	}
+
+	public VSOPField(String name, VSOPType type) {
+		this(name, type, 0, 0);
 	}
 
 	@Override
@@ -45,6 +49,5 @@ public class VSOPField {
 			return false;
 		return true;
 	}
-	
-	
+
 }

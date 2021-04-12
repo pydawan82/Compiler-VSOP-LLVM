@@ -1,8 +1,11 @@
 package vsop;
 
+import java.io.PrintStream;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class SemanticError {
+	private static final PrintStream DEFAULT_ERR = System.err;
 	public static String fName = "";
 
 	public final int ln, col;
@@ -18,9 +21,17 @@ public class SemanticError {
 		this(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(), msg);
 	}
 
-	public void printError() {
-		System.err.print(toString());
-		System.err.println();
+	public SemanticError(String msg) {
+		this(0, -1, msg);
+	}
+
+	public void print(PrintStream out) {
+		out.print(toString());
+		out.println();
+	}
+
+	public void print() {
+		print(DEFAULT_ERR);
 	}
 
 	@Override

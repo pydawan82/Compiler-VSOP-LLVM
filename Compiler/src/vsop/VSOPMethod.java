@@ -3,13 +3,17 @@ package vsop;
 import java.util.List;
 
 public class VSOPMethod {
-	
+
 	public final String name;
 	public List<VSOPField> args;
 	public VSOPType ret;
-	
-	public final int ln,col;
-	
+
+	public final int ln, col;
+
+	public VSOPMethod(String name, List<VSOPField> args, VSOPType ret) {
+		this(name, args, ret, 0, 0);
+	}
+
 	public VSOPMethod(String name, List<VSOPField> args, VSOPType ret, int ln, int col) {
 		this.name = name;
 		this.args = args;
@@ -17,6 +21,5 @@ public class VSOPMethod {
 		this.ln = ln;
 		this.col = col;
 	}
-	
-	
+
 }

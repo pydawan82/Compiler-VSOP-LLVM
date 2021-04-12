@@ -8,8 +8,8 @@ public class VSOPType {
 		this.id = id;
 		this.defaultValue = defaultValue;
 	}
-	
+
 	public boolean canCast(VSOPType target) {
-		return this==target;
+		return this == target;
 	}
 }

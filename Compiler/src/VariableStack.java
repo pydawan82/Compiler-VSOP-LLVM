@@ -8,35 +8,35 @@ import vsop.VSOPType;
 public class VariableStack {
 
 	private Map<String, Stack<VSOPType>> vars = new HashMap<>();
-	
+
 	public void push(String id, VSOPType type) {
 		Stack<VSOPType> stack = vars.get(id);
-		if(stack == null) {
+		if (stack == null) {
 			stack = new Stack<>();
 			vars.put(id, stack);
 		}
-		
+
 		stack.push(type);
 	}
-	
+
 	public VSOPType get(String id) {
 		Stack<VSOPType> stack = vars.get(id);
-		
-		if(stack == null || stack.isEmpty())
+
+		if (stack == null || stack.isEmpty())
 			return null;
-		
+
 		return stack.peek();
 	}
-	
+
 	public VSOPType pop(String id) {
 		Stack<VSOPType> stack = vars.get(id);
-		if(stack == null)
+		if (stack == null)
 			throw new EmptyStackException();
-		
+
 		try {
 			return stack.pop();
 		} finally {
-			if(stack.isEmpty())
+			if (stack.isEmpty())
 				vars.remove(id);
 		}
 	}
