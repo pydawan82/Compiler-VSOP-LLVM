@@ -8,18 +8,18 @@ import compiler.vsop.VSOPMethod;
 public class ASTCall extends ASTExpr {
     
     VSOPMethod vsopMethod;
-    ASTExpr expr;
+    ASTExpr object;
     List<ASTExpr> args;
 
     public ASTCall(
             VSOPMethod vsopMethod,
-            ASTExpr expr,
+            ASTExpr object,
             List<ASTExpr> args
         )
     {
         super(vsopMethod.ret);
         this.vsopMethod = vsopMethod;
-        this.expr = expr;
+        this.object = object;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class ASTCall extends ASTExpr {
     @Override
     public void print(PrintStream pStream) {
 		pStream.print("Call(");
-		expr.print(pStream);
+		object.print(pStream);
 		pStream.printf(", %s, ", vsopMethod.id);
 
 		pStream.print("[");

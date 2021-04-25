@@ -1,0 +1,45 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Tar project",
+            "command": "C:/Program Files/PeaZip/res/7z/7z.exe",
+            "type": "process",
+            "args": ["a", "-ttar", "-mx0", "-sccUTF-8", "-bb0","-bse0", "-bsp2",
+                "../project.tar",
+                "grammars",
+                "src",
+                "antlr-4.9.1-complete.jar",
+                "Makefile",
+                "vsopc.sh" 
+            ],
+            "options": {
+                "cwd": "./Compiler"
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+        },
+        {
+            "label": "Compress project",
+            "command": "C:/Program Files/PeaZip/res/7z/7z.exe",
+            "type": "process",
+            "args": ["a", "-tgzip", "-mx9", "-mfb=128", "-mpass=10", "-sccUTF-8", "-bb0", "-bse0", "-bsp2",
+                "project.tar.gz",
+                "project.tar"
+            ],
+            "options": {
+                "cwd": ".",
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+        }
+    ]
+}

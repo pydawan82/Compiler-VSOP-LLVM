@@ -3,6 +3,7 @@ package compiler.vsop;
 import java.io.PrintStream;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 
 public class SemanticError {
 	private static final PrintStream DEFAULT_ERR = System.err;
@@ -17,8 +18,12 @@ public class SemanticError {
 		this.msg = msg;
 	}
 
+	public SemanticError(Token token, String msg) {
+		this(token.getLine(), token.getCharPositionInLine(), msg);
+	}
+
 	public SemanticError(ParserRuleContext ctx, String msg) {
-		this(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(), msg);
+		this(ctx.getStart(), msg);
 	}
 
 	public SemanticError(String msg) {

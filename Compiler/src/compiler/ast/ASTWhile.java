@@ -2,8 +2,6 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import compiler.vsop.VSOPType;
-
 import static compiler.vsop.VSOPConstants.UNIT;
 
 public class ASTWhile extends ASTExpr {
@@ -12,12 +10,11 @@ public class ASTWhile extends ASTExpr {
     ASTExpr loop;
 
     public ASTWhile(
-            VSOPType type,
             ASTExpr cond,
             ASTExpr loop
         )
     {
-        super(type);
+        super(UNIT);
         this.cond = cond;
         this.loop = loop;
     }

@@ -6,17 +6,16 @@ import java.util.List;
 
 import compiler.vsop.VSOPType;
 
-public class ASTBlock extends ASTNode {
+public class ASTBlock extends ASTExpr {
     List<ASTExpr> expressions;
-    VSOPType returnType;
 
     public ASTBlock(
             List<ASTExpr> expressions,
             VSOPType returnType
         )
     {
+        super(returnType);
         this.expressions = expressions;
-        this.returnType = returnType;
     }
 
     @Override
@@ -43,7 +42,7 @@ public class ASTBlock extends ASTNode {
 		}
 
 		pStream.print(']');
-		pStream.printf(":%s", returnType.id);
+		pStream.printf(":%s", type.id);
     }
     
 }

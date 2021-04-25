@@ -2,16 +2,20 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
+import compiler.vsop.VSOPType;
+
 
 public class ASTFormal extends ASTNode {
     String id;
-    ASTType type;
+    VSOPType type;
     
     public ASTFormal(
-            ASTType type
+            String id,
+            VSOPType type
         )
     {
         this.type = type;
+        this.id = id;
     }
 
     @Override
@@ -21,8 +25,7 @@ public class ASTFormal extends ASTNode {
 
     @Override
     public void print(PrintStream pStream) {
-        pStream.print(id + " : ");
-		type.print(pStream);
+        pStream.printf("%s: %s",id, type);
     }
     
 }

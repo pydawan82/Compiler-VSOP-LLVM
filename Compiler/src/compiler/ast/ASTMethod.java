@@ -9,17 +9,14 @@ public class ASTMethod extends ASTNode {
 
     VSOPMethod vsopMethod;
     List<ASTFormal> formals;
-    ASTType type;
     ASTBlock block;
 
     public ASTMethod(
             List<ASTFormal> formals,
-            ASTType type,
             ASTBlock block
         )
     {
         this.formals = formals;
-        this.type = type;
         this.block = block;
     }
 
@@ -55,7 +52,7 @@ public class ASTMethod extends ASTNode {
         pStream.print(']');
 
         pStream.print(", ");
-        type.print(pStream);
+        pStream.print(vsopMethod.ret);
 
         pStream.print(", ");
         block.print(pStream);

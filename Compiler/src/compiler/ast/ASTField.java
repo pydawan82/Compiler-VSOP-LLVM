@@ -8,17 +8,14 @@ import compiler.vsop.VSOPField;
 
 public class ASTField extends ASTNode{
     VSOPField vsopField;
-    ASTType type;
     Optional<ASTExpr> expr;
 
     public ASTField(
             VSOPField vsopField,
-            ASTType type,
             Optional<ASTExpr> expr
         )
     {
         this.vsopField = vsopField;
-        this.type = type;
         this.expr = expr;
     }
 
@@ -30,8 +27,7 @@ public class ASTField extends ASTNode{
     @Override
     public void print(PrintStream pStream) {
 
-		pStream.printf("Field(%s, ", vsopField.id);
-		type.print(pStream);
+		pStream.printf("Field(%s, %s", vsopField.id, vsopField.type.id);
 
 		if(expr.isPresent())
             pStream.print(", ");
