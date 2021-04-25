@@ -2,14 +2,12 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPClass;
 
 public class ASTSelf extends ASTExpr {
 
-    public ASTSelf(ParserRuleContext context, VSOPClass vsopClass) {
-        super(context, vsopClass);
+    public ASTSelf(VSOPClass vsopClass) {
+        super(vsopClass);
     }
 
     @Override

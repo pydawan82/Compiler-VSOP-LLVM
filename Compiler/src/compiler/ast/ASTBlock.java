@@ -3,7 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.vsop.VSOPType;
 
@@ -12,12 +11,10 @@ public class ASTBlock extends ASTNode {
     VSOPType returnType;
 
     public ASTBlock(
-            ParserRuleContext context,
             List<ASTExpr> expressions,
             VSOPType returnType
         )
     {
-        super(context);
         this.expressions = expressions;
         this.returnType = returnType;
     }

@@ -3,19 +3,15 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import compiler.parsing.VSOPParser;
-
 public class ASTProgram extends ASTNode {
 
     public List<ASTClass> classes;
 
     public ASTProgram(
-            VSOPParser.ProgramContext context,
             List<ASTClass> classes
         )
     {
-
-        super(context);
+        this.classes = classes;
     }
 
     @Override

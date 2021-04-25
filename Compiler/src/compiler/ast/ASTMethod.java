@@ -3,8 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPMethod;
 
 public class ASTMethod extends ASTNode {
@@ -14,8 +12,12 @@ public class ASTMethod extends ASTNode {
     ASTType type;
     ASTBlock block;
 
-    public ASTMethod(ParserRuleContext context, List<ASTFormal> formals, ASTType type, ASTBlock block) {
-        super(context);
+    public ASTMethod(
+            List<ASTFormal> formals,
+            ASTType type,
+            ASTBlock block
+        )
+    {
         this.formals = formals;
         this.type = type;
         this.block = block;

@@ -3,7 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.vsop.VSOPClass;
 
@@ -15,13 +14,11 @@ public class ASTClass extends ASTNode {
     
 
     public ASTClass(
-            ParserRuleContext context,
             VSOPClass vsopClass,
             List<ASTField> fields,
             List<ASTMethod> methods
         )
     {
-        super(context);
         this.vsopClass = vsopClass;
         this.fields = fields;
         this.methods = methods;

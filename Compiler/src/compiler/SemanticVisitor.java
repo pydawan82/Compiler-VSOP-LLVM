@@ -1,6 +1,7 @@
 package compiler;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +14,8 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import compiler.ast.*;
 
 import compiler.parsing.VSOPParser;
 import compiler.vsop.SemanticError;
@@ -29,10 +32,6 @@ import static compiler.vsop.VSOPConstants.*;
 public class SemanticVisitor {
 
 	private Map<Class<?>, Function<ParserRuleContext, VSOPType>> exprDispatcher = new HashMap<>();
-
-	private PrintStream out = System.out;
-	private int tab = -1;
-	private String tabs = "\t";
 
 	private Map<String, VSOPClass> classMap = new HashMap<>();
 	private VSOPClass currentClass;
@@ -73,11 +72,6 @@ public class SemanticVisitor {
 		this.classMap = classMap;
 	}
 
-	private void printTab() {
-		for (int i = 0; i < tab; i++)
-			out.print(tabs);
-	}
-
 	public void flushErrorQueue() {
 		while (!errorQueue.isEmpty())
 			errorQueue.poll().print();
@@ -85,249 +79,89 @@ public class SemanticVisitor {
 		errorQueue.forEach((error) -> error.print());
 	}
 
-	public Void visit(ParseTree arg0) {
-		return null;
+	public ASTProgram visitProgram(VSOPParser.ProgramContext ctx) {
+		List<ASTClass> classes = new ArrayList<>(ctx.clazz().size());
+		
+		ctx.clazz().stream()
+			.map(this::visitClass)
+			.forEach(classes::add);
+
+		return new ASTProgram(classes);
 	}
 
-	public Void visitChildren(RuleNode arg0) {
-		return null;
-	}
-
-	public Void visitErrorNode(ErrorNode arg0) {
-		return null;
-	}
-
-	public Void visitTerminal(TerminalNode arg0) {
-		return null;
-	}
-
-	public Void visitProgram(VSOPParser.ProgramContext ctx) {
-		tab++;
-
-		List<VSOPParser.ClazzContext> clazzList = ctx.clazz();
-		out.print('[');
-
-		int i = 0;
-		for (var clazz : clazzList) {
-			i++;
-			visitClazz(clazz);
-			if (i != clazzList.size()) {
-				out.println(',');
-				printTab();
-			}
-		}
-
-		out.println(']');
-
-		tab--;
-
-		return null;
-	}
-
-	public Void visitClazz(VSOPParser.ClazzContext ctx) {
+	public ASTClass visitClass(VSOPParser.ClazzContext ctx) {
 		String id = ctx.id.getText();
 		currentClass = classMap.get(id);
-		String superId = ctx.idext != null ? ctx.idext.getText() : OBJECT.id;
+		var body = ctx.classBody();
 
-		tab++;
+		List<ASTField> fields = new ArrayList<>();
+		body.field().stream()
+			.map(this::visitField)
+			.forEach(fields::add);
 
-		out.printf("Class(%s, %s, ", id, superId);
+		List<ASTMethod> methods = new ArrayList<>();
+		body.method().stream()
+			.map(this::visitMethod)
+			.forEach(methods::add);
 
-		visitClassBody(ctx.classBody());
-
-		out.print(')');
-
-		tab--;
-
-		return null;
+		return new ASTClass(currentClass, fields, methods);
 	}
 
-	public Void visitClassBody(VSOPParser.ClassBodyContext ctx) {
-		tab++;
-
-		out.print('[');
-
-		int i = 0;
-		for (var field : ctx.field()) {
-			i++;
-			out.println();
-			printTab();
-
-			visitField(field);
-
-			if (i != ctx.field().size()) {
-				out.print(",");
-			}
-		}
-
-		out.print("], ");
-
-		if (ctx.field().size() != 0) {
-			out.println();
-			printTab();
-		}
-
-		out.print('[');
-
-		i = 0;
-		for (var method : ctx.method()) {
-			i++;
-			out.println();
-			printTab();
-
-			visitMethod(method);
-
-			if (i != ctx.method().size()) {
-				out.print(",");
-			}
-		}
-		out.print(']');
-
-		tab--;
-
-		return null;
-	}
-
-	public Void visitField(VSOPParser.FieldContext ctx) {
-		tab++;
+	public ASTField visitField(VSOPParser.FieldContext ctx) {
 		inFieldInit = true;
 
-		String id = ctx.id.getText();
-
-		out.printf("Field(%s, ", id);
-		visitType(ctx.type());
-
 		if (ctx.expr() != null) {
-			out.print(", ");
 			VSOPType fType = getType(ctx.type());
 			VSOPType exprType = visitExpr(ctx.expr());
 			if (!exprType.canCast(fType))
 				errorQueue.add(
 						new SemanticError(ctx.expr(), String.format("cannot cast %s to %s", exprType.id, fType.id)));
 		}
-
-		out.print(')');
-		tab--;
-
+		
 		inFieldInit = false;
-		return null;
+		return new ASTField();
 	}
 
-	public Void visitMethod(VSOPParser.MethodContext ctx) {
-
-		String id = ctx.id.getText();
-
-		tab++;
-
-		out.printf("Method(%s, ", id);
-
+	public ASTMethod visitMethod(VSOPParser.MethodContext ctx) {
+		String id = ctx.getText();
 		visitFormals(ctx.formals());
-
-		out.print(", ");
-
-		visitType(ctx.type());
-		out.print(", ");
-
+		
 		VSOPMethod method = currentClass.functions.get(id);
 		for (var field : method.args)
 			varStack.push(field.id, field.type);
 
 		VSOPType ret = visitBlock(ctx.block());
-		out.printf(":%s", ret.id);
 
 		for (var field : method.args)
 			varStack.pop(field.id);
-
-		out.print(')');
-
-		tab--;
 
 		if (!ret.canCast(method.ret))
 			errorQueue.add(new SemanticError(ctx.block(),
 					String.format("Method should return %s but got %s instead", method.ret.id, ret.id)));
 
+		return new ASTMethod();
+	}
+
+	public ASTFormal visitFormal(VSOPParser.FormalContext ctx) {
 		return null;
 	}
 
-	public Void visitFormals(VSOPParser.FormalsContext ctx) {
-		out.print('[');
-
-		int i = 0;
-		for (var formal : ctx.formal()) {
-			i++;
-
-			out.println();
-			printTab();
-
-			visitFormal(formal);
-
-			if (i != ctx.formal().size()) {
-				out.print(",");
-			}
-		}
-
-		if (ctx.formal().size() != 0) {
-			out.println();
-			printTab();
-		}
-
-		out.print(']');
-
-		return null;
-	}
-
-	public Void visitFormal(VSOPParser.FormalContext ctx) {
-		out.print(ctx.id.getText() + " : ");
-		visitType(ctx.type());
-		return null;
-	}
-
-	public VSOPType visitBlock(VSOPParser.BlockContext ctx) {
-
-		tab++;
-
-		out.print('[');
+	public ASTBlock visitBlock(VSOPParser.BlockContext ctx) {
 		VSOPType type = UNIT;
 
-		int i = 0;
 		for (var expr : ctx.expr()) {
-			i++;
-
-			out.println();
-			printTab();
-
 			type = visitExpr(expr);
 
-			if (i != ctx.expr().size()) {
-				out.print(",");
-			}
 		}
-
-		if (ctx.expr().size() != 0) {
-			out.println();
-			printTab();
-		}
-
-		out.print(']');
-		out.printf(":%s", ctx.expr(ctx.expr().size()-1));
-		tab--;
-
 		return type;
 	}
 
-	public VSOPType visitExpr(VSOPParser.ExprContext ctx) {
+	public ASTExpr visitExpr(VSOPParser.ExprContext ctx) {
 		VSOPType type = exprDispatcher.get(ctx.getClass()).apply(ctx);
-
-		if (ctx.getClass() != VSOPParser.BraceExprContext.class)
-			out.printf(":%s", (type != null) ? type.id : "null");
 		return type;
 	}
 
-	public Void visitArgs(VSOPParser.ArgsContext ctx) {
-		tab++;
-
-		out.print("[");
-
+	public ASTArgs visitArgs(VSOPParser.ArgsContext ctx) {
 		VSOPMethod method = methodStack.peek();
 
 		if (method != null && method.args.size() != ctx.expr().size()) {
@@ -335,12 +169,9 @@ public class SemanticVisitor {
 					method.args.size(), ctx.expr().size())));
 		}
 
-		int i = 0;
+		i = 0;
+
 		for (var expr : ctx.expr()) {
-
-			out.println();
-			printTab();
-
 			VSOPType argType = visitExpr(expr);
 			if (method != null && i < method.args.size()) {
 				if (!argType.canCast(method.args.get(i).type)) {
@@ -348,29 +179,12 @@ public class SemanticVisitor {
 							String.format("cannot cast from %s to %s", argType.id, method.args.get(i).type.id)));
 				}
 			}
-
 			i++;
-
-			if (i != ctx.expr().size()) {
-				out.print(",");
-			}
 		}
-
-		if (ctx.expr().size() != 0) {
-			out.println();
-			printTab();
-		}
-
-		out.print("]");
-
-		tab--;
-
 		return null;
 	}
 
-	public VSOPType visitLiteral(VSOPParser.LiteralContext ctx) {
-		out.print(ctx.getText());
-
+	public ASTLiteral visitLiteral(VSOPParser.LiteralContext ctx) {
 		if (ctx.INTEGER_LITERAL() != null) {
 			return INT32;
 		}
@@ -386,19 +200,12 @@ public class SemanticVisitor {
 		if (ctx.LPAR() != null) {
 			return UNIT;
 		}
-
+		
 		errorQueue.add(new SemanticError(ctx, "Unexpected error occured while trying to parse literal type"));
-
 		return null;
 	}
 
-	public Void visitBooleanLiteral(VSOPParser.BooleanLiteralContext ctx) {
-		System.err.println("UNEXPECTED BRANCH!");
-
-		return null;
-	}
-
-	public VSOPType getType(VSOPParser.TypeContext ctx) {
+	public ASTType getType(VSOPParser.TypeContext ctx) {
 		String typeStr = ctx.getText();
 		VSOPType type = primitiveTypeMap.get(typeStr);
 
@@ -415,18 +222,9 @@ public class SemanticVisitor {
 		return type;
 	}
 
-	public Void visitType(VSOPParser.TypeContext ctx) {
-		out.print(ctx.getText());
-		return null;
-	}
-
-	public VSOPType visitAss(VSOPParser.AssContext ctx) {
+	public ASTAss visitAss(VSOPParser.AssContext ctx) {
 		String id = ctx.id.getText();
-
-		out.printf("Assign(%s, ", id);
 		VSOPType exprType = visitExpr(ctx.expr());
-		out.print(")");
-
 		VSOPType varType = varStack.get(id);
 
 		if (varType == null) {
@@ -445,11 +243,8 @@ public class SemanticVisitor {
 		return (varType != null) ? varType : exprType;
 	}
 
-	public VSOPType visitNew(VSOPParser.NewContext ctx) {
+	public ASTNew visitNew(VSOPParser.NewContext ctx) {
 		String id = ctx.id.getText();
-
-		out.printf("New(%s)", id);
-
 		VSOPType type = classMap.get(id);
 		if (type == null)
 			errorQueue.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
@@ -458,16 +253,9 @@ public class SemanticVisitor {
 		return (type != null) ? type : OBJECT;
 	}
 
-	public VSOPType visitBl(VSOPParser.BlContext ctx) {
-		return visitBlock(ctx.block());
-	}
-
-	public VSOPType visitWhile(VSOPParser.WhileContext ctx) {
-		out.print("While(");
+	public ASTWhile visitWhile(VSOPParser.WhileContext ctx) {
 		VSOPType condType = visitExpr(ctx.expr(0));
-		out.print(", ");
 		visitExpr(ctx.expr(1));
-		out.print(")");
 
 		if (!condType.canCast(BOOL))
 			errorQueue.add(
@@ -476,10 +264,8 @@ public class SemanticVisitor {
 		return UNIT;
 	}
 
-	public VSOPType visitNot(VSOPParser.NotContext ctx) {
-		out.print("UnOp(not, ");
+	public ASTNot visitNot(VSOPParser.NotContext ctx) {
 		VSOPType type = visitExpr(ctx.expr());
-		out.print(")");
 
 		if (type != BOOL) {
 			errorQueue.add(new SemanticError(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
@@ -489,10 +275,8 @@ public class SemanticVisitor {
 		return BOOL;
 	}
 
-	public VSOPType visitMinus(VSOPParser.MinusContext ctx) {
-		out.print("UnOp(-, ");
+	public ASTMinus visitMinus(VSOPParser.MinusContext ctx) {
 		VSOPType type = visitExpr(ctx.expr());
-		out.print(")");
 
 		if (type != INT32) {
 			errorQueue.add(new SemanticError(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
@@ -502,10 +286,8 @@ public class SemanticVisitor {
 		return INT32;
 	}
 
-	public VSOPType visitIsnull(VSOPParser.IsnullContext ctx) {
-		out.print("UnOp(isnull, ");
+	public ASTIsnull visitIsnull(VSOPParser.IsnullContext ctx) {
 		VSOPType type = visitExpr(ctx.expr());
-		out.print(")");
 
 		if (primitiveTypes.contains(type))
 			errorQueue.add(new SemanticError(ctx, "isnull operator can only be used with non primitive types"));
@@ -513,7 +295,7 @@ public class SemanticVisitor {
 		return BOOL;
 	}
 
-	public VSOPType visitSelfcall(VSOPParser.SelfcallContext ctx) {
+	public ASTCall visitSelfcall(VSOPParser.SelfcallContext ctx) {
 		String id = ctx.id.getText();
 
 		VSOPMethod method = currentClass.functions.get(id);
@@ -524,26 +306,17 @@ public class SemanticVisitor {
 					new SemanticError(ctx, String.format("method %s is undefined for type %s", id, currentClass.id)));
 		}
 
-		out.printf("Call(self: %s, %s, ", currentClass.id, ctx.id.getText());
-
 		methodStack.push(method);
 		visitArgs(ctx.args());
 		methodStack.pop();
 
-		out.print(')');
-
 		return (method != null) ? method.ret : UNIT;
 	}
 
-	public VSOPType visitCall(VSOPParser.CallContext ctx) {
-
+	public ASTCall visitCall(VSOPParser.CallContext ctx) {
 		String id = ctx.id.getText();
 
-		out.print("Call(");
-
 		VSOPType exprType = visitExpr(ctx.expr());
-
-		out.print(", " + ctx.id.getText() + ", ");
 
 		VSOPType retType = UNIT;
 		if (exprType instanceof VSOPClass) {
@@ -565,38 +338,29 @@ public class SemanticVisitor {
 		visitArgs(ctx.args());
 		methodStack.pop();
 
-		out.print(')');
-
 		return retType;
 	}
 
 	public VSOPType visitUnit(VSOPParser.UnitContext ctx) {
-		out.print("()");
 		return UNIT;
 	}
 
-	public VSOPType visitLit(VSOPParser.LitContext ctx) {
+	public ASTLiteral visitLit(VSOPParser.LitContext ctx) {
 		return visitLiteral(ctx.literal());
 	}
 
-	public VSOPType visitSelf(VSOPParser.SelfContext ctx) {
-		out.print("self");
+	public ASTSelf visitSelf(VSOPParser.SelfContext ctx) {
 		return currentClass;
 	}
 
-	public VSOPType visitLet(VSOPParser.LetContext ctx) {
+	public ASTLet visitLet(VSOPParser.LetContext ctx) {
 
 		String id = ctx.id.getText();
 		VSOPType varType = getType(ctx.type());
 		varStack.push(id, varType);
 
-		out.printf("Let(%s, ", id);
-		visitType(ctx.type());
-		out.print(", ");
-
 		if (ctx.as != null) {
 			VSOPType asType = visitExpr(ctx.as);
-			out.print(", ");
 
 			if (!asType.canCast(varType)) {
 				errorQueue.add(new SemanticError(ctx, String.format("Cannot convert %s to %s", asType.id, varType.id)));
@@ -604,14 +368,13 @@ public class SemanticVisitor {
 		}
 
 		VSOPType inType = visitExpr(ctx.ex);
-		out.print(")");
 
 		varStack.pop(id);
 
 		return inType;
 	}
 
-	public VSOPType visitOi(VSOPParser.OiContext ctx) {
+	public ASTOi visitOi(VSOPParser.OiContext ctx) {
 		String id = ctx.id.getText();
 
 		VSOPType type = varStack.get(id);
@@ -626,13 +389,10 @@ public class SemanticVisitor {
 			}
 		}
 
-		out.print(id);
-
 		return (type != null) ? type : UNIT;
 	}
 
-	public VSOPType visitIf(VSOPParser.IfContext ctx) {
-		out.print("If(");
+	public ASTIf visitIf(VSOPParser.IfContext ctx) {
 
 		VSOPType type0 = visitExpr(ctx.expr(0));
 
@@ -641,19 +401,14 @@ public class SemanticVisitor {
 					.add(new SemanticError(ctx, String.format("Condition must be of type BOOL but got %s", type0.id)));
 		}
 
-		out.print(", ");
-
 		VSOPType type1 = visitExpr(ctx.expr(1));
 		VSOPType type2;
 
 		if (ctx.expr(2) != null) {
-			out.print(", ");
 			type2 = visitExpr(ctx.expr(2));
 		} else {
 			type2 = UNIT;
 		}
-
-		out.print(")");
 
 		if (type1 instanceof VSOPClass && type2 instanceof VSOPClass) {
 			return VSOPClass.commonAncestor((VSOPClass) type1, (VSOPClass) type2);
@@ -667,18 +422,14 @@ public class SemanticVisitor {
 		}
 	}
 
-	public VSOPType visitBraceExpr(VSOPParser.BraceExprContext ctx) {
+	public ASTExpr visitBraceExpr(VSOPParser.BraceExprContext ctx) {
 		return visitExpr(ctx.expr());
 	}
 
-	public VSOPType visitBinop(VSOPParser.BinopContext ctx) {
+	public ASTBinop visitBinop(VSOPParser.BinopContext ctx) {
 		String op = ctx.op.getText();
-
-		out.printf("BinOp(%s, ", op);
 		VSOPType type1 = visitExpr(ctx.expr(0));
-		out.print(", ");
 		VSOPType type2 = visitExpr(ctx.expr(1));
-		out.print(")");
 
 		VSOPBinOp binOp = binOpMap.get(op);
 

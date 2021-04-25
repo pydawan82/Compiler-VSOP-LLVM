@@ -3,10 +3,7 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPMethod;
-import compiler.vsop.VSOPType;
 
 public class ASTCall extends ASTExpr {
     
@@ -15,13 +12,12 @@ public class ASTCall extends ASTExpr {
     List<ASTExpr> args;
 
     public ASTCall(
-            ParserRuleContext context,
             VSOPMethod vsopMethod,
             ASTExpr expr,
             List<ASTExpr> args
         )
     {
-        super(context, vsopMethod.ret);
+        super(vsopMethod.ret);
         this.vsopMethod = vsopMethod;
         this.expr = expr;
     }

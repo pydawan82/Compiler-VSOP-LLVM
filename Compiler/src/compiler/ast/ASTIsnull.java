@@ -2,16 +2,14 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import static compiler.vsop.VSOPConstants.BOOL;
 
 public class ASTIsnull extends ASTExpr {
 
     ASTExpr expr;
 
-    public ASTIsnull(ParserRuleContext context, ASTExpr expr) {
-        super(context, BOOL);
+    public ASTIsnull(ASTExpr expr) {
+        super(BOOL);
         this.expr = expr;
     }
 

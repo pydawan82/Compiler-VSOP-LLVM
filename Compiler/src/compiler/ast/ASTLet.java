@@ -3,8 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.Optional;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPType;
 
 public class ASTLet extends ASTExpr {
@@ -14,14 +12,13 @@ public class ASTLet extends ASTExpr {
     ASTExpr in;
 
     public ASTLet(
-            ParserRuleContext context,
             VSOPType type,
             String id,
             Optional<ASTExpr> value,
             ASTExpr in
         )
     {
-        super(context, type);
+        super(type);
         this.id = id;
         this.value = value;
         this.in = in;

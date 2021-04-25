@@ -2,8 +2,6 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPBinOp;
 import compiler.vsop.VSOPType;
 
@@ -15,14 +13,13 @@ public class ASTBinop extends ASTExpr {
     ASTExpr rightExpr;
     
     public ASTBinop(
-            ParserRuleContext context,
             VSOPType type,
             VSOPBinOp operator,
             ASTExpr leftExpr,
             ASTExpr rightExpr
         )
     {
-        super(context, type);
+        super(type);
         this.operator = operator;
         this.leftExpr = leftExpr;
         this.rightExpr = rightExpr;

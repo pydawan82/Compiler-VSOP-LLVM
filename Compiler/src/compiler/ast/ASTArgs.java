@@ -3,18 +3,14 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 public class ASTArgs extends ASTNode {
 
     List<ASTExpr> expressions;
 
     public ASTArgs(
-            ParserRuleContext context,
             List<ASTExpr> expressions
         )
     {
-        super(context);
         this.expressions = expressions;
     }
 

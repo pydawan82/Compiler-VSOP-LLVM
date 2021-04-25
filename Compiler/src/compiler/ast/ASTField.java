@@ -3,7 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.Optional;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.vsop.VSOPField;
 
@@ -13,13 +12,14 @@ public class ASTField extends ASTNode{
     Optional<ASTExpr> expr;
 
     public ASTField(
-            ParserRuleContext context,
-            VSOPField field,
+            VSOPField vsopField,
             ASTType type,
             Optional<ASTExpr> expr
         )
     {
-        super(context);
+        this.vsopField = vsopField;
+        this.type = type;
+        this.expr = expr;
     }
 
     @Override

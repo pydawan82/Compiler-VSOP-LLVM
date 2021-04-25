@@ -2,8 +2,6 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPType;
 
 public class ASTMinus extends ASTExpr {
@@ -11,12 +9,11 @@ public class ASTMinus extends ASTExpr {
     ASTExpr expr;
 
     public ASTMinus(
-            ParserRuleContext context,
             VSOPType type,
             ASTExpr expr
         )
     {
-        super(context, type);
+        super(type);
         this.expr = expr;
     }
 

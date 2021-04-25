@@ -2,8 +2,6 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import compiler.vsop.VSOPType;
 
 import static compiler.vsop.VSOPConstants.UNIT;
@@ -14,13 +12,12 @@ public class ASTWhile extends ASTExpr {
     ASTExpr loop;
 
     public ASTWhile(
-            ParserRuleContext context,
             VSOPType type,
             ASTExpr cond,
             ASTExpr loop
         )
     {
-        super(context, type);
+        super(type);
         this.cond = cond;
         this.loop = loop;
     }

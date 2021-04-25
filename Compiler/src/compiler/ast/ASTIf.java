@@ -4,7 +4,6 @@ import java.io.PrintStream;
 
 import java.util.Optional;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.vsop.VSOPType;
 
@@ -15,14 +14,13 @@ public class ASTIf extends ASTExpr {
     Optional<ASTExpr> elseExpr;
 
     public ASTIf(
-            ParserRuleContext context,
             VSOPType type,
             ASTExpr condExpr,
             ASTExpr thenExpr,
             Optional<ASTExpr> elseExpr
         )
     {
-        super(context, type);
+        super(type);
         this.condExpr = condExpr;
         this.thenExpr = thenExpr;
         this.elseExpr = elseExpr;
