@@ -1,3 +1,5 @@
+package compiler;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -6,8 +8,8 @@ import java.util.Map;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import vsop.SemanticError;
-import vsop.VSOPClass;
+import compiler.vsop.SemanticError;
+import compiler.vsop.VSOPClass;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
