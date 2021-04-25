@@ -6,18 +6,17 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.vsop.VSOPType;
 
-public class ASTMinus extends ASTExpr {
-
-    ASTExpr expr;
-
-    public ASTMinus(
-            ParserRuleContext context,
-            VSOPType type,
-            ASTExpr expr
-        )
-    {
+public class ASTLiteral extends ASTExpr {
+    
+    String value;
+    
+    public ASTLiteral(
+        ParserRuleContext context,
+        VSOPType type,
+        String value
+    ) {
         super(context, type);
-        this.expr = expr;
+        this.value = value;
     }
 
     @Override
@@ -28,9 +27,8 @@ public class ASTMinus extends ASTExpr {
 
     @Override
     public void print(PrintStream pStream) {
-        pStream.print("UnOp(-, ");
-		expr.print(pStream);
-		pStream.printf("):%s", type.id);
+        pStream.print(value);
+		pStream.printf(":%s", type.id);
     }
     
 }

@@ -1,4 +1,4 @@
-package vsop;
+package compiler.vsop;
 
 import java.io.PrintStream;
 

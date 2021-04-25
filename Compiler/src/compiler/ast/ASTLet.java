@@ -1,24 +1,30 @@
 package compiler.ast;
 
 import java.io.PrintStream;
+import java.util.Optional;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.vsop.VSOPType;
 
-public class ASTAss extends ASTExpr {
-    String id;
-    ASTExpr value;
-    VSOPType type;
+public class ASTLet extends ASTExpr {
 
-    public ASTAss(
+    String id;
+    Optional<ASTExpr> value;
+    ASTExpr in;
+
+    public ASTLet(
             ParserRuleContext context,
             VSOPType type,
-            ASTExpr value
-        ) 
+            String id,
+            Optional<ASTExpr> value,
+            ASTExpr in
+        )
     {
         super(context, type);
+        this.id = id;
         this.value = value;
+        this.in = in;
     }
 
     @Override
@@ -28,8 +34,14 @@ public class ASTAss extends ASTExpr {
 
     @Override
     public void print(PrintStream pStream) {
-		pStream.printf("Assign(%s, ", id);
-		value.print(pStream);
+		pStream.printf("Let(%s, %s, ", id, type.id);
+
+		if (value.isPresent()) {
+			value.get().print(pStream);
+			pStream.print(", ");
+		}
+
+		in.print(pStream);
 		pStream.printf("):%s", type.id);
     }
     

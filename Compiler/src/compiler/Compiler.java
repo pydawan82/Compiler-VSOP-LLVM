@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import compiler.parsing.VSOPLexer;
+import compiler.parsing.VSOPParser;
 import compiler.vsop.SemanticError;
 import compiler.vsop.VSOPClass;
 

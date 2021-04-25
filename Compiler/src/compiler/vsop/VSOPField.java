@@ -1,14 +1,14 @@
-package vsop;
+package compiler.vsop;
 
 public class VSOPField {
 
-	public final String name;
+	public final String id;
 	public VSOPType type;
 
 	public final int ln, col;
 
 	public VSOPField(String name, VSOPType type, int ln, int col) {
-		this.name = name;
+		this.id = name;
 		this.type = type;
 
 		this.ln = ln;
@@ -23,7 +23,7 @@ public class VSOPField {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -37,10 +37,10 @@ public class VSOPField {
 		if (getClass() != obj.getClass())
 			return false;
 		VSOPField other = (VSOPField) obj;
-		if (name == null) {
-			if (other.name != null)
+		if (id == null) {
+			if (other.id != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!id.equals(other.id))
 			return false;
 		if (type == null) {
 			if (other.type != null)

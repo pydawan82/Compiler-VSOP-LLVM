@@ -1,4 +1,4 @@
-package vsop;
+package compiler.vsop;
 
 import java.util.List;
 import java.util.Map;
@@ -25,9 +25,9 @@ public class VSOPConstants {
 	private static final VSOPMethod inputInt32 = new VSOPMethod("inputInt32", List.of(), INT32);
 
 	static {
-		OBJECT.functions.putAll(Map.of(print.name, print, printBool.name, printBool, printInt32.name, printInt32,
+		OBJECT.functions.putAll(Map.of(print.id, print, printBool.id, printBool, printInt32.id, printInt32,
 
-				inputLine.name, inputLine, inputBool.name, inputBool, inputInt32.name, inputInt32));
+				inputLine.id, inputLine, inputBool.id, inputBool, inputInt32.id, inputInt32));
 	}
 
 	public static final List<String> reservedNames = List.of("and", "extends", "isnull", "false", "let", "then",

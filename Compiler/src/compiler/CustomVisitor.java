@@ -1,3 +1,5 @@
+package compiler;
+
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +11,11 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import compiler.parsing.VSOPParser;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
-public class CustomVisitor implements VSOPParserVisitor<Void> {
+public class CustomVisitor {
 
 	PrintStream out = System.out;
 
@@ -50,7 +54,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		}
 	}
 
-	@Override
 	public Void visit(ParseTree arg0) {
 		VSOPParser.ProgramContext ctx = (VSOPParser.ProgramContext) arg0;
 		visitProgram(ctx);
@@ -58,22 +61,18 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitChildren(RuleNode arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitErrorNode(ErrorNode arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitTerminal(TerminalNode arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitProgram(VSOPParser.ProgramContext ctx) {
 		tab++;
 
@@ -96,7 +95,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitClazz(VSOPParser.ClazzContext ctx) {
 		tab++;
 
@@ -110,7 +108,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitClassBody(VSOPParser.ClassBodyContext ctx) {
 		tab++;
 
@@ -152,7 +149,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitField(VSOPParser.FieldContext ctx) {
 		tab++;
 
@@ -168,7 +164,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitMethod(VSOPParser.MethodContext ctx) {
 		tab++;
 
@@ -189,7 +184,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitFormals(VSOPParser.FormalsContext ctx) {
 		out.print('[');
 
@@ -217,14 +211,12 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitFormal(VSOPParser.FormalContext ctx) {
 		out.print(ctx.id.getText() + " : ");
 		visitType(ctx.type());
 		return null;
 	}
 
-	@Override
 	public Void visitBlock(VSOPParser.BlockContext ctx) {
 		tab++;
 
@@ -260,7 +252,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitArgs(VSOPParser.ArgsContext ctx) {
 		tab++;
 
@@ -291,25 +282,21 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitLiteral(VSOPParser.LiteralContext ctx) {
 		out.print(ctx.getText());
 		return null;
 	}
 
-	@Override
 	public Void visitBooleanLiteral(VSOPParser.BooleanLiteralContext ctx) {
 		out.print(ctx.getText());
 		return null;
 	}
 
-	@Override
 	public Void visitType(VSOPParser.TypeContext ctx) {
 		out.print(ctx.getText());
 		return null;
 	}
 
-	@Override
 	public Void visitAss(VSOPParser.AssContext ctx) {
 		out.print("Assign(" + ctx.id.getText() + ", ");
 		visitExpr(ctx.expr());
@@ -317,19 +304,16 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitNew(VSOPParser.NewContext ctx) {
 		out.print("New(" + ctx.id.getText() + ")");
 		return null;
 	}
 
-	@Override
 	public Void visitBl(VSOPParser.BlContext ctx) {
 		visitBlock(ctx.block());
 		return null;
 	}
 
-	@Override
 	public Void visitWhile(VSOPParser.WhileContext ctx) {
 		out.print("While(");
 		visitExpr(ctx.expr(0));
@@ -340,7 +324,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitNot(VSOPParser.NotContext ctx) {
 		out.print("UnOp(not, ");
 		visitExpr(ctx.expr());
@@ -348,7 +331,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitMinus(VSOPParser.MinusContext ctx) {
 		out.print("UnOp(-, ");
 		visitExpr(ctx.expr());
@@ -356,7 +338,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitIsnull(VSOPParser.IsnullContext ctx) {
 		out.print("UnOp(isnull, ");
 		visitExpr(ctx.expr());
@@ -364,7 +345,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitSelfcall(VSOPParser.SelfcallContext ctx) {
 		out.print("Call(self, " + ctx.id.getText() + ", ");
 
@@ -375,7 +355,6 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitCall(VSOPParser.CallContext ctx) {
 		out.print("Call(");
 
@@ -390,25 +369,21 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitUnit(VSOPParser.UnitContext ctx) {
 		out.print("()");
 		return null;
 	}
 
-	@Override
 	public Void visitLit(VSOPParser.LitContext ctx) {
 		visitLiteral(ctx.literal());
 		return null;
 	}
 
-	@Override
 	public Void visitSelf(VSOPParser.SelfContext ctx) {
 		out.print("self");
 		return null;
 	}
 
-	@Override
 	public Void visitLet(VSOPParser.LetContext ctx) {
 		out.print("Let(" + ctx.id.getText() + ", ");
 		visitType(ctx.type());
@@ -423,13 +398,11 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitOi(VSOPParser.OiContext ctx) {
 		out.print(ctx.id.getText());
 		return null;
 	}
 
-	@Override
 	public Void visitIf(VSOPParser.IfContext ctx) {
 		out.print("If(");
 		visitExpr(ctx.expr(0));
@@ -445,13 +418,11 @@ public class CustomVisitor implements VSOPParserVisitor<Void> {
 		return null;
 	}
 
-	@Override
 	public Void visitBraceExpr(VSOPParser.BraceExprContext ctx) {
 		visitExpr(ctx.expr());
 		return null;
 	}
 
-	@Override
 	public Void visitBinop(VSOPParser.BinopContext ctx) {
 		out.print("BinOp(" + ctx.op.getText() + ", ");
 		visitExpr(ctx.expr(0));

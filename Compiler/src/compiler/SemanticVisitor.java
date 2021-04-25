@@ -1,3 +1,5 @@
+package compiler;
+
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,18 +14,19 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import vsop.SemanticError;
-import vsop.VSOPBinOp;
-import vsop.VSOPClass;
-import vsop.VSOPField;
-import vsop.VSOPMethod;
-import vsop.VSOPType;
+import compiler.parsing.VSOPParser;
+import compiler.vsop.SemanticError;
+import compiler.vsop.VSOPBinOp;
+import compiler.vsop.VSOPClass;
+import compiler.vsop.VSOPField;
+import compiler.vsop.VSOPMethod;
+import compiler.vsop.VSOPType;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import static vsop.VSOPConstants.*;
+import static compiler.vsop.VSOPConstants.*;
 
-public class SemanticVisitor implements VSOPParserVisitor<Object> {
+public class SemanticVisitor {
 
 	private Map<Class<?>, Function<ParserRuleContext, VSOPType>> exprDispatcher = new HashMap<>();
 
@@ -82,27 +85,22 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		errorQueue.forEach((error) -> error.print());
 	}
 
-	@Override
 	public Void visit(ParseTree arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitChildren(RuleNode arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitErrorNode(ErrorNode arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitTerminal(TerminalNode arg0) {
 		return null;
 	}
 
-	@Override
 	public Void visitProgram(VSOPParser.ProgramContext ctx) {
 		tab++;
 
@@ -126,7 +124,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitClazz(VSOPParser.ClazzContext ctx) {
 		String id = ctx.id.getText();
 		currentClass = classMap.get(id);
@@ -145,7 +142,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitClassBody(VSOPParser.ClassBodyContext ctx) {
 		tab++;
 
@@ -192,7 +188,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitField(VSOPParser.FieldContext ctx) {
 		tab++;
 		inFieldInit = true;
@@ -218,7 +213,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitMethod(VSOPParser.MethodContext ctx) {
 
 		String id = ctx.id.getText();
@@ -236,13 +230,13 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 
 		VSOPMethod method = currentClass.functions.get(id);
 		for (var field : method.args)
-			varStack.push(field.name, field.type);
+			varStack.push(field.id, field.type);
 
 		VSOPType ret = visitBlock(ctx.block());
 		out.printf(":%s", ret.id);
 
 		for (var field : method.args)
-			varStack.pop(field.name);
+			varStack.pop(field.id);
 
 		out.print(')');
 
@@ -255,7 +249,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitFormals(VSOPParser.FormalsContext ctx) {
 		out.print('[');
 
@@ -283,14 +276,12 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitFormal(VSOPParser.FormalContext ctx) {
 		out.print(ctx.id.getText() + " : ");
 		visitType(ctx.type());
 		return null;
 	}
 
-	@Override
 	public VSOPType visitBlock(VSOPParser.BlockContext ctx) {
 
 		tab++;
@@ -318,6 +309,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		}
 
 		out.print(']');
+		out.printf(":%s", ctx.expr(ctx.expr().size()-1));
 		tab--;
 
 		return type;
@@ -331,7 +323,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return type;
 	}
 
-	@Override
 	public Void visitArgs(VSOPParser.ArgsContext ctx) {
 		tab++;
 
@@ -340,7 +331,7 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		VSOPMethod method = methodStack.peek();
 
 		if (method != null && method.args.size() != ctx.expr().size()) {
-			errorQueue.add(new SemanticError(ctx, String.format("method %s expected %d args but got %d", method.name,
+			errorQueue.add(new SemanticError(ctx, String.format("method %s expected %d args but got %d", method.id,
 					method.args.size(), ctx.expr().size())));
 		}
 
@@ -377,7 +368,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public VSOPType visitLiteral(VSOPParser.LiteralContext ctx) {
 		out.print(ctx.getText());
 
@@ -402,7 +392,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return null;
 	}
 
-	@Override
 	public Void visitBooleanLiteral(VSOPParser.BooleanLiteralContext ctx) {
 		System.err.println("UNEXPECTED BRANCH!");
 
@@ -426,13 +415,11 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return type;
 	}
 
-	@Override
 	public Void visitType(VSOPParser.TypeContext ctx) {
 		out.print(ctx.getText());
 		return null;
 	}
 
-	@Override
 	public VSOPType visitAss(VSOPParser.AssContext ctx) {
 		String id = ctx.id.getText();
 
@@ -458,7 +445,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return (varType != null) ? varType : exprType;
 	}
 
-	@Override
 	public VSOPType visitNew(VSOPParser.NewContext ctx) {
 		String id = ctx.id.getText();
 
@@ -472,12 +458,10 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return (type != null) ? type : OBJECT;
 	}
 
-	@Override
 	public VSOPType visitBl(VSOPParser.BlContext ctx) {
 		return visitBlock(ctx.block());
 	}
 
-	@Override
 	public VSOPType visitWhile(VSOPParser.WhileContext ctx) {
 		out.print("While(");
 		VSOPType condType = visitExpr(ctx.expr(0));
@@ -492,7 +476,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return UNIT;
 	}
 
-	@Override
 	public VSOPType visitNot(VSOPParser.NotContext ctx) {
 		out.print("UnOp(not, ");
 		VSOPType type = visitExpr(ctx.expr());
@@ -506,7 +489,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return BOOL;
 	}
 
-	@Override
 	public VSOPType visitMinus(VSOPParser.MinusContext ctx) {
 		out.print("UnOp(-, ");
 		VSOPType type = visitExpr(ctx.expr());
@@ -520,7 +502,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return INT32;
 	}
 
-	@Override
 	public VSOPType visitIsnull(VSOPParser.IsnullContext ctx) {
 		out.print("UnOp(isnull, ");
 		VSOPType type = visitExpr(ctx.expr());
@@ -532,7 +513,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return BOOL;
 	}
 
-	@Override
 	public VSOPType visitSelfcall(VSOPParser.SelfcallContext ctx) {
 		String id = ctx.id.getText();
 
@@ -555,7 +535,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return (method != null) ? method.ret : UNIT;
 	}
 
-	@Override
 	public VSOPType visitCall(VSOPParser.CallContext ctx) {
 
 		String id = ctx.id.getText();
@@ -591,24 +570,20 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return retType;
 	}
 
-	@Override
 	public VSOPType visitUnit(VSOPParser.UnitContext ctx) {
 		out.print("()");
 		return UNIT;
 	}
 
-	@Override
 	public VSOPType visitLit(VSOPParser.LitContext ctx) {
 		return visitLiteral(ctx.literal());
 	}
 
-	@Override
 	public VSOPType visitSelf(VSOPParser.SelfContext ctx) {
 		out.print("self");
 		return currentClass;
 	}
 
-	@Override
 	public VSOPType visitLet(VSOPParser.LetContext ctx) {
 
 		String id = ctx.id.getText();
@@ -636,7 +611,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return inType;
 	}
 
-	@Override
 	public VSOPType visitOi(VSOPParser.OiContext ctx) {
 		String id = ctx.id.getText();
 
@@ -657,7 +631,6 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		return (type != null) ? type : UNIT;
 	}
 
-	@Override
 	public VSOPType visitIf(VSOPParser.IfContext ctx) {
 		out.print("If(");
 
@@ -694,12 +667,10 @@ public class SemanticVisitor implements VSOPParserVisitor<Object> {
 		}
 	}
 
-	@Override
 	public VSOPType visitBraceExpr(VSOPParser.BraceExprContext ctx) {
 		return visitExpr(ctx.expr());
 	}
 
-	@Override
 	public VSOPType visitBinop(VSOPParser.BinopContext ctx) {
 		String op = ctx.op.getText();
 

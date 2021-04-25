@@ -1,3 +1,5 @@
+package compiler.util;
+
 
 public class Pair<A, B> {
 	public A first;

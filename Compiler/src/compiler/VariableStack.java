@@ -1,9 +1,11 @@
+package compiler;
+
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import vsop.VSOPType;
+import compiler.vsop.VSOPType;
 
 public class VariableStack {
 

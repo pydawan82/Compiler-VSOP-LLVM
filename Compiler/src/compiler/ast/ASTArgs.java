@@ -5,37 +5,35 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import compiler.vsop.VSOPType;
+public class ASTArgs extends ASTNode {
 
-public class ASTBlock extends ASTNode {
     List<ASTExpr> expressions;
-    VSOPType returnType;
 
-    public ASTBlock(
+    public ASTArgs(
             ParserRuleContext context,
-            List<ASTExpr> expressions,
-            VSOPType returnType
+            List<ASTExpr> expressions
         )
     {
         super(context);
         this.expressions = expressions;
-        this.returnType = returnType;
     }
 
     @Override
     public void visit() {
+        // TODO Auto-generated method stub
         
     }
 
     @Override
     public void print(PrintStream pStream) {
-		pStream.print('[');
-
+		pStream.print("[");
 		int i = 0;
 		for (var expr : expressions) {
-			i++;
 			pStream.println();
 			expr.print(pStream);
+			
+            i++;
+
 			if (i != expressions.size()) {
 				pStream.print(",");
 			}
@@ -45,8 +43,6 @@ public class ASTBlock extends ASTNode {
 			pStream.println();
 		}
 
-		pStream.print(']');
-		pStream.printf(":%s", returnType.id);
+		pStream.print("]");
     }
-    
 }

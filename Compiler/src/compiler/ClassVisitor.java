@@ -1,3 +1,5 @@
+package compiler;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -5,13 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import vsop.SemanticError;
-import vsop.VSOPClass;
-import vsop.VSOPField;
-import vsop.VSOPMethod;
-import vsop.VSOPType;
+import compiler.parsing.VSOPParser;
+import compiler.util.Node;
+import compiler.util.Pair;
+import compiler.util.Tree;
+import compiler.vsop.SemanticError;
+import compiler.vsop.VSOPClass;
+import compiler.vsop.VSOPField;
+import compiler.vsop.VSOPMethod;
+import compiler.vsop.VSOPType;
 
-import static vsop.VSOPConstants.*;
+import static compiler.vsop.VSOPConstants.*;
 
 public class ClassVisitor {
 	private Queue<Runnable> taskQueue = new LinkedList<>();
@@ -139,7 +145,7 @@ public class ClassVisitor {
 
 		for (var field : ctx.field()) {
 			VSOPField f = visitField(field);
-			VSOPField old = fields.putIfAbsent(f.name, f);
+			VSOPField old = fields.putIfAbsent(f.id, f);
 			if (old != null) {
 				errorQueue.add(new SemanticError(field.start.getLine(), field.start.getCharPositionInLine(),
 						String.format("redefinition of field %s", field.id.getText())));
@@ -150,7 +156,7 @@ public class ClassVisitor {
 
 		for (var method : ctx.method()) {
 			VSOPMethod m = visitMethod(method);
-			VSOPMethod old = methods.putIfAbsent(m.name, m);
+			VSOPMethod old = methods.putIfAbsent(m.id, m);
 			if (old != null) {
 				errorQueue.add(new SemanticError(method.start.getLine(), method.start.getCharPositionInLine(),
 						String.format("redefinition of method %s", method.id.getText())));
@@ -168,7 +174,7 @@ public class ClassVisitor {
 			field.type = getType(ctx.type());
 			if (field.type == null) {
 				errorQueue.add(new SemanticError(field.ln, field.col,
-						String.format("Undefined type %s for field %s", ctx.type().getText(), field.name)));
+						String.format("Undefined type %s for field %s", ctx.type().getText(), field.id)));
 			}
 		});
 
@@ -194,11 +200,11 @@ public class ClassVisitor {
 		for (var formal : ctx.formal()) {
 			VSOPField field = getFormal(formal);
 
-			if (formalNames.containsKey(field.name)) {
-				errorQueue.add(new SemanticError(formal, String.format("Duplicate formal name %s", field.name)));
+			if (formalNames.containsKey(field.id)) {
+				errorQueue.add(new SemanticError(formal, String.format("Duplicate formal name %s", field.id)));
 			}
 
-			formalNames.put(field.name, field);
+			formalNames.put(field.id, field);
 			args.add(field);
 		}
 

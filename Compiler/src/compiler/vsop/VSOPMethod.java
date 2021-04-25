@@ -1,10 +1,10 @@
-package vsop;
+package compiler.vsop;
 
 import java.util.List;
 
 public class VSOPMethod {
 
-	public final String name;
+	public final String id;
 	public List<VSOPField> args;
 	public VSOPType ret;
 
@@ -15,7 +15,7 @@ public class VSOPMethod {
 	}
 
 	public VSOPMethod(String name, List<VSOPField> args, VSOPType ret, int ln, int col) {
-		this.name = name;
+		this.id = name;
 		this.args = args;
 		this.ret = ret;
 		this.ln = ln;

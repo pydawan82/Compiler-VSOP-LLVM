@@ -1,4 +1,4 @@
-package vsop;
+package compiler.vsop;
 
 public class VSOPBinOp {
 	public final String id;

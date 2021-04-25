@@ -1,4 +1,4 @@
-package vsop;
+package compiler.vsop;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -58,7 +58,7 @@ public class VSOPClass extends VSOPType {
 			VSOPField old = fields.put(key, f);
 			if (old != null)
 				errors.add(
-						new SemanticError(f.ln, f.col, String.format("field %s is redefined in %s", f.name, this.id)));
+						new SemanticError(f.ln, f.col, String.format("field %s is redefined in %s", f.id, this.id)));
 		}
 
 		return errors;
@@ -75,7 +75,7 @@ public class VSOPClass extends VSOPType {
 			VSOPMethod old = functions.putIfAbsent(key, m);
 			if (old != null && (!m.args.equals(old.args) || m.ret != old.ret))
 				errors.add(new SemanticError(m.ln, m.col,
-						String.format("method %s is redefined in class %s with wrong signature", m.name, this.id)));
+						String.format("method %s is redefined in class %s with wrong signature", m.id, this.id)));
 
 		}
 
