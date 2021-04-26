@@ -14,15 +14,15 @@ public class ASTIsnull extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
         pStream.print("UnOp(isnull, ");
-		expr.print(pStream);
+		expr.print(pStream, indent+1);
 		pStream.printf("):%s", type.id);
     }
     

@@ -8,8 +8,10 @@ import java.util.Map;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import compiler.ast.ASTProgram;
 import compiler.parsing.VSOPLexer;
 import compiler.parsing.VSOPParser;
+import compiler.util.Chrono;
 import compiler.vsop.SemanticError;
 import compiler.vsop.VSOPClass;
 
@@ -151,7 +153,7 @@ public class Compiler {
 		return success;
 	}
 
-	public boolean compile() {
+	public boolean check() {
 		SemanticError.fName = fName;
 		success = true;
 		VSOPParser.ProgramContext ctx = parser.program();
@@ -162,15 +164,16 @@ public class Compiler {
 		}
 		
 		ClassVisitor visitor = new ClassVisitor();
-		try/* (Chrono c = new Chrono()) */ {
+		try(Chrono c = new Chrono()) {
 			Map<String, VSOPClass> map = visitor.classMap(ctx);
 			if (map == null)
 				return false;
 
 			SemanticVisitor v = new SemanticVisitor(map);
-			v.visitProgram(ctx);
+			ASTProgram program = v.visitProgram(ctx);
 			success = v.errorQueue.isEmpty();
 			v.flushErrorQueue();
+			program.print(System.out);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -179,6 +182,9 @@ public class Compiler {
 	}
 
 	public static void main(String[] args) throws IOException {
+
+		args = "-c Compiler/vsop-examples/main.vsop".split(" ");
+
 		if (args.length != 2) {
 			System.err.println("Usage: vsopc [-l|-p|-c] *input_file*");
 			System.exit(-1);
@@ -203,7 +209,7 @@ public class Compiler {
 			return;
 
 		case "-c":
-			if (c.compile())
+			if (c.check())
 				System.exit(0);
 			else
 				System.exit(-1);
