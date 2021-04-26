@@ -19,13 +19,13 @@ public class ASTFormal extends ASTNode {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
-        pStream.printf("%s: %s",id, type);
+    public void print(PrintStream pStream, int indent) {
+        pStream.printf("%s: %s",id, type.id);
     }
     
 }

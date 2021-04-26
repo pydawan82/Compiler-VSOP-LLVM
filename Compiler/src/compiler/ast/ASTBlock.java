@@ -19,19 +19,21 @@ public class ASTBlock extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 		pStream.print('[');
 
 		int i = 0;
 		for (var expr : expressions) {
 			i++;
 			pStream.println();
-			expr.print(pStream);
+            indent(pStream, indent);
+            
+			expr.print(pStream, indent+1);
 			if (i != expressions.size()) {
 				pStream.print(",");
 			}
@@ -39,6 +41,7 @@ public class ASTBlock extends ASTExpr {
 
 		if (expressions.size() != 0) {
 			pStream.println();
+            indent(pStream, indent);
 		}
 
 		pStream.print(']');

@@ -20,16 +20,16 @@ public class ASTWhile extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
         pStream.print("While(");
-        cond.print(pStream);
+        cond.print(pStream, indent+1);
 		pStream.print(", ");
-        loop.print(pStream);
+        loop.print(pStream, indent+1);
 		pStream.printf("):%s", UNIT.id);
     }
     

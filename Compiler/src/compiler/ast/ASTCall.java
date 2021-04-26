@@ -20,25 +20,27 @@ public class ASTCall extends ASTExpr {
         super(vsopMethod.ret);
         this.vsopMethod = vsopMethod;
         this.object = object;
+        this.args = args;
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 		pStream.print("Call(");
-		object.print(pStream);
+		object.print(pStream, indent+1);
 		pStream.printf(", %s, ", vsopMethod.id);
 
 		pStream.print("[");
 		int i = 0;
 		for (var arg : args) {
 			pStream.println();
-			arg.print(pStream);
+            indent(pStream, indent);
+			arg.print(pStream, indent+1);
 			
             i++;
 
@@ -49,6 +51,7 @@ public class ASTCall extends ASTExpr {
 
 		if (args.size() != 0) {
 			pStream.println();
+            indent(pStream, indent);
 		}
 		pStream.print("]");
 

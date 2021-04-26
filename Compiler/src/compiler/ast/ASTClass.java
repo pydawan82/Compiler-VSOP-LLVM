@@ -25,12 +25,12 @@ public class ASTClass extends ASTNode {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
         pStream.printf("Class(%s, %s, ", vsopClass.id, vsopClass.superClass.id);
 
         pStream.print('[');
@@ -39,8 +39,9 @@ public class ASTClass extends ASTNode {
         for (var field : fields) {
             i++;
             pStream.println();
+            indent(pStream, indent);
 
-            field.print(pStream);
+            field.print(pStream, indent+1);
 
             if (i != fields.size()) {
                 pStream.print(",");
@@ -51,6 +52,7 @@ public class ASTClass extends ASTNode {
 
         if (fields.size() != 0) {
             pStream.println();
+            indent(pStream, indent);
         }
 
         pStream.print('[');
@@ -59,8 +61,9 @@ public class ASTClass extends ASTNode {
         for (var method : methods) {
             i++;
             pStream.println();
+            indent(pStream, indent);
             
-            method.print(pStream);
+            method.print(pStream, indent+1);
 
             if (i != methods.size()) {
                 pStream.print(",");

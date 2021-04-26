@@ -11,13 +11,13 @@ public class ASTSelf extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
         pStream.printf("self:%s", type.id);
     }
     

@@ -20,18 +20,18 @@ public class ASTField extends ASTNode{
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 
 		pStream.printf("Field(%s, %s", vsopField.id, vsopField.type.id);
 
 		if(expr.isPresent())
             pStream.print(", ");
-            expr.get().print(pStream);
+            expr.get().print(pStream, indent+1);
 
 		pStream.print(')');
     }

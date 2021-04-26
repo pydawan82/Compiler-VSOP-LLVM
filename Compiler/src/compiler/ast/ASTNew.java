@@ -15,12 +15,12 @@ public class ASTNew extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 		pStream.printf("New(%s)", id);
 		pStream.printf(":%s", type.id);
     }

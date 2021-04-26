@@ -17,13 +17,12 @@ public class ASTLiteral extends ASTExpr {
     }
 
     @Override
-    public void visit() {
-        // TODO Auto-generated method stub
-        
+    public void emitLLVM(PrintStream pStream, Context ctx) {
+                // TODO Auto-generated method stub
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
         pStream.print(value);
 		pStream.printf(":%s", type.id);
     }

@@ -18,12 +18,12 @@ public class ASTOi extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 		pStream.printf("%s:%s", id, type.id);
     }
     

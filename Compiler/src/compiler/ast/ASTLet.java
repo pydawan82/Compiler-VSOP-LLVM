@@ -25,20 +25,20 @@ public class ASTLet extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 		pStream.printf("Let(%s, %s, ", id, type.id);
 
 		if (value.isPresent()) {
-			value.get().print(pStream);
+			value.get().print(pStream, indent+1);
 			pStream.print(", ");
 		}
 
-		in.print(pStream);
+		in.print(pStream, indent+1);
 		pStream.printf("):%s", type.id);
     }
     

@@ -19,14 +19,14 @@ public class ASTAss extends ASTExpr {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 		pStream.printf("Assign(%s, ", id);
-		value.print(pStream);
+		value.print(pStream, indent+1);
 		pStream.printf("):%s", type.id);
     }
     

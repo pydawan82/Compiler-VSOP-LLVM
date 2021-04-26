@@ -59,6 +59,9 @@ public class SemanticVisitor {
 				(ParserRuleContext c) -> visitSelf((VSOPParser.SelfContext) c));
 		exprDispatcher.put(VSOPParser.BraceExprContext.class,
 				(ParserRuleContext c) -> visitBraceExpr((VSOPParser.BraceExprContext) c));
+		exprDispatcher.put(VSOPParser.LitContext.class, (ParserRuleContext c) -> visitLit((VSOPParser.LitContext) c));
+		exprDispatcher.put(VSOPParser.BlContext.class, (ParserRuleContext c) -> visitBl((VSOPParser.BlContext) c));
+		exprDispatcher.put(VSOPParser.UnitContext.class, (ParserRuleContext c) -> visitUnit((VSOPParser.UnitContext) c));
 
 		this.classMap = classMap;
 	}
@@ -116,7 +119,7 @@ public class SemanticVisitor {
 	}
 
 	public ASTMethod visitMethod(VSOPParser.MethodContext ctx) {
-		String id = ctx.getText();
+		String id = ctx.id.getText();
 
 		List<ASTFormal> formals = new ArrayList<>(ctx.formals().formal().size());
 		ctx.formals().formal().stream().map(this::visitFormal).forEach(formals::add);
@@ -134,11 +137,15 @@ public class SemanticVisitor {
 			errorQueue.add(new SemanticError(ctx.block(),
 					String.format("Method should return %s but got %s instead", method.ret.id, block.type.id)));
 
-		return new ASTMethod(formals, block);
+		return new ASTMethod(method, formals, block);
 	}
 
 	public ASTFormal visitFormal(VSOPParser.FormalContext ctx) {
-		return null;
+		return new ASTFormal(ctx.id.getText(), getType(ctx.type()));
+	}
+
+	public ASTBlock visitBl(VSOPParser.BlContext ctx) {
+		return visitBlock(ctx.block());
 	}
 
 	public ASTBlock visitBlock(VSOPParser.BlockContext ctx) {
@@ -180,6 +187,14 @@ public class SemanticVisitor {
 			i++;
 		}
 		return args;
+	}
+
+	public ASTLiteral visitLit(VSOPParser.LitContext ctx) {
+		return visitLiteral(ctx.literal());
+	}
+
+	public ASTLiteral visitUnit(VSOPParser.UnitContext ctx) {
+		return new ASTLiteral(UNIT, ctx.getText());
 	}
 
 	public ASTLiteral visitLiteral(VSOPParser.LiteralContext ctx) {

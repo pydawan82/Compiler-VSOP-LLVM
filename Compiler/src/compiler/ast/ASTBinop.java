@@ -17,24 +17,24 @@ public class ASTBinop extends ASTExpr {
             ASTExpr rightExpr
         )
     {
-        super(operator.opType);
+        super(operator.retType);
         this.operator = operator;
         this.leftExpr = leftExpr;
         this.rightExpr = rightExpr;
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 
 		pStream.printf("BinOp(%s, ", operator.id);
-		leftExpr.print(pStream);
+		leftExpr.print(pStream, indent+1);
 		pStream.print(", ");
-		rightExpr.print(pStream);
+		rightExpr.print(pStream, indent+1);
 		pStream.printf("):%s", type.id);
     }
     

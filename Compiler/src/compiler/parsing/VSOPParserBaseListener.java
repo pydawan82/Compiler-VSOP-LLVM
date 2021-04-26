@@ -1,4 +1,5 @@
 package compiler.parsing;
+
 // Generated from e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\grammars\VSOPParser.g4 by ANTLR 4.8
 
 import org.antlr.v4.runtime.ParserRuleContext;

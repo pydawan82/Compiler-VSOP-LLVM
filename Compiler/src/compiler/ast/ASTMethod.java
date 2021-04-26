@@ -12,21 +12,23 @@ public class ASTMethod extends ASTNode {
     ASTBlock block;
 
     public ASTMethod(
+            VSOPMethod vsopMethod,
             List<ASTFormal> formals,
             ASTBlock block
         )
     {
+        this.vsopMethod = vsopMethod;
         this.formals = formals;
         this.block = block;
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
 
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
 
         pStream.printf("Method(%s, ", vsopMethod.id);
 
@@ -37,8 +39,9 @@ public class ASTMethod extends ASTNode {
             i++;
 
             pStream.println();
+            indent(pStream, indent);
 
-            formal.print(pStream);
+            formal.print(pStream, indent+1);
 
             if (i != formals.size()) {
                 pStream.print(",");
@@ -47,15 +50,16 @@ public class ASTMethod extends ASTNode {
 
         if (formals.size() != 0) {
             pStream.println();
+            indent(pStream, indent);
         }
 
         pStream.print(']');
 
         pStream.print(", ");
-        pStream.print(vsopMethod.ret);
+        pStream.print(vsopMethod.ret.id);
 
         pStream.print(", ");
-        block.print(pStream);
+        block.print(pStream, indent+1);
 
         pStream.print(')');
     }

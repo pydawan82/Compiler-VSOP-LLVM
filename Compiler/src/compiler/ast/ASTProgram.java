@@ -15,20 +15,21 @@ public class ASTProgram extends ASTNode {
     }
 
     @Override
-    public void visit() {
+    public void emitLLVM(PrintStream pStream, Context ctx) {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void print(PrintStream pStream) {
+    public void print(PrintStream pStream, int indent) {
         pStream.print('[');
 
 		int i = 0;
 		for (var clazz : classes) {
-			clazz.print(pStream);
+			clazz.print(pStream, indent+1);
 			if (i != classes.size()) {
 				pStream.println(',');
+                indent(pStream, indent);
 			}
 		}
 
