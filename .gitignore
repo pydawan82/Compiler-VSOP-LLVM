@@ -1,5 +1,5 @@
 #VSCode Counter
-/.VSCodeCounter
+.VSCodeCounter/**
 
 # Compiled class file
 *.class
@@ -19,6 +19,7 @@
 *.nar
 *.ear
 *.zip
+*.tar
 *.tar.gz
 *.tar.xz
 *.rar
