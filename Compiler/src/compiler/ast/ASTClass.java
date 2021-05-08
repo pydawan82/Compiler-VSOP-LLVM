@@ -3,7 +3,7 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-
+import compiler.llvm.Context;
 import compiler.vsop.VSOPClass;
 
 public class ASTClass extends ASTNode {

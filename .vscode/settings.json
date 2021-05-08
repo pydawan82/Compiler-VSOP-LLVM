@@ -5,6 +5,8 @@
     ],
     "antlr4.generation": {
         "mode":"external",
-        //"outputDir": "../src/compiler/parsing"
-    }
+        "outputDir": "../src/compiler/parsing",
+        "package": "compiler.parsing"
+    },
+    "java.home": "C:/Java/jdk-16"
 }

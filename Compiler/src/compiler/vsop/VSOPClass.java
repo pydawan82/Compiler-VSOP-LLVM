@@ -8,6 +8,8 @@ import java.util.Stack;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import compiler.error.SemanticError;
+
 public class VSOPClass extends VSOPType {
 	public VSOPClass superClass;
 	public final Map<String, VSOPField> fields = new HashMap<>();

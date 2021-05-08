@@ -1,5 +1,6 @@
-package compiler;
+package compiler.visitors;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,22 +12,25 @@ import java.util.Stack;
 import java.util.function.Function;
 
 import compiler.ast.*;
-
-import compiler.parsing.VSOPParser;
-import compiler.vsop.SemanticError;
+import compiler.error.SemanticError;
+import compiler.parsing.VSOPParser.*;
+import compiler.util.VariableStack;
 import compiler.vsop.VSOPBinOp;
 import compiler.vsop.VSOPClass;
 import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
 import compiler.vsop.VSOPType;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import static compiler.vsop.VSOPConstants.*;
 
+/**
+ * A class that performs semantic analysis of a VSOP program.
+ */
 public class SemanticVisitor {
 
-	private Map<Class<?>, Function<ParserRuleContext, ASTExpr>> exprDispatcher = new HashMap<>();
+	private PrintStream err;
+
+	private Map<Class<?>, Function<ExprContext, ASTExpr>> exprDispatcher = new HashMap<>();
 
 	private Map<String, VSOPClass> classMap = new HashMap<>();
 	private VSOPClass currentClass;
@@ -36,52 +40,82 @@ public class SemanticVisitor {
 	private VariableStack varStack = new VariableStack();
 	private Stack<VSOPMethod> methodStack = new Stack<>();
 
-	public SemanticVisitor(Map<String, VSOPClass> classMap) {
-		exprDispatcher.put(VSOPParser.IfContext.class, (ParserRuleContext c) -> visitIf((VSOPParser.IfContext) c));
-		exprDispatcher.put(VSOPParser.WhileContext.class,
-				(ParserRuleContext c) -> visitWhile((VSOPParser.WhileContext) c));
-		exprDispatcher.put(VSOPParser.LetContext.class, (ParserRuleContext c) -> visitLet((VSOPParser.LetContext) c));
-		exprDispatcher.put(VSOPParser.AssContext.class, (ParserRuleContext c) -> visitAss((VSOPParser.AssContext) c));
-		exprDispatcher.put(VSOPParser.NotContext.class, (ParserRuleContext c) -> visitNot((VSOPParser.NotContext) c));
-		exprDispatcher.put(VSOPParser.BinopContext.class,
-				(ParserRuleContext c) -> visitBinop((VSOPParser.BinopContext) c));
-		exprDispatcher.put(VSOPParser.MinusContext.class,
-				(ParserRuleContext c) -> visitMinus((VSOPParser.MinusContext) c));
-		exprDispatcher.put(VSOPParser.IsnullContext.class,
-				(ParserRuleContext c) -> visitIsnull((VSOPParser.IsnullContext) c));
-		exprDispatcher.put(VSOPParser.SelfcallContext.class,
-				(ParserRuleContext c) -> visitSelfcall((VSOPParser.SelfcallContext) c));
-		exprDispatcher.put(VSOPParser.CallContext.class,
-				(ParserRuleContext c) -> visitCall((VSOPParser.CallContext) c));
-		exprDispatcher.put(VSOPParser.NewContext.class, (ParserRuleContext c) -> visitNew((VSOPParser.NewContext) c));
-		exprDispatcher.put(VSOPParser.OiContext.class, (ParserRuleContext c) -> visitOi((VSOPParser.OiContext) c));
-		exprDispatcher.put(VSOPParser.SelfContext.class,
-				(ParserRuleContext c) -> visitSelf((VSOPParser.SelfContext) c));
-		exprDispatcher.put(VSOPParser.BraceExprContext.class,
-				(ParserRuleContext c) -> visitBraceExpr((VSOPParser.BraceExprContext) c));
-		exprDispatcher.put(VSOPParser.LitContext.class, (ParserRuleContext c) -> visitLit((VSOPParser.LitContext) c));
-		exprDispatcher.put(VSOPParser.BlContext.class, (ParserRuleContext c) -> visitBl((VSOPParser.BlContext) c));
-		exprDispatcher.put(VSOPParser.UnitContext.class, (ParserRuleContext c) -> visitUnit((VSOPParser.UnitContext) c));
-
+	/**
+	 * Creates a new {@link SemanticVisitor} given a {@link Map} of defined classes and
+	 * a {@link PrintStream} to print errors.
+	 * @param classMap - The map of defined classes
+	 * @param err - The stream where errors are printed
+	 */
+	public SemanticVisitor(Map<String, VSOPClass> classMap, PrintStream err) {
 		this.classMap = classMap;
+		this.err = err;
+		
+		exprDispatcher.put(IfContext.class,  c -> visitIf((IfContext) c));
+		exprDispatcher.put(WhileContext.class, c -> visitWhile((WhileContext) c));
+		exprDispatcher.put(LetContext.class, c -> visitLet((LetContext) c));
+		exprDispatcher.put(AssContext.class, c -> visitAss((AssContext) c));
+		exprDispatcher.put(NotContext.class, c -> visitNot((NotContext) c));
+		exprDispatcher.put(BinopContext.class, c -> visitBinop((BinopContext) c));
+		exprDispatcher.put(MinusContext.class, c -> visitMinus((MinusContext) c));
+		exprDispatcher.put(IsnullContext.class, c -> visitIsnull((IsnullContext) c));
+		exprDispatcher.put(SelfcallContext.class, c -> visitSelfcall((SelfcallContext) c));
+		exprDispatcher.put(CallContext.class, c -> visitCall((CallContext) c));
+		exprDispatcher.put(NewContext.class, c -> visitNew((NewContext) c));
+		exprDispatcher.put(OiContext.class, c -> visitOi((OiContext) c));
+		exprDispatcher.put(SelfContext.class, c -> visitSelf((SelfContext) c));
+		exprDispatcher.put(BraceExprContext.class, c -> visitBraceExpr((BraceExprContext) c));
+		exprDispatcher.put(LitContext.class, c -> visitLit((LitContext) c));
+		exprDispatcher.put(BlContext.class, c -> visitBl((BlContext) c));
+		exprDispatcher.put(UnitContext.class, c -> visitUnit((UnitContext) c));
 	}
 
-	public void flushErrorQueue() {
-		while (!errorQueue.isEmpty())
-			errorQueue.poll().print();
-
-		errorQueue.forEach((error) -> error.print());
+	/**
+	 * Creates a new {@link SemanticVisitor} with the default error stream: {@link System#err}
+	 * @param classMap - The map of defined classes
+	 * @see SemanticVisitor#SemanticVisitor(Map, PrintStream)
+	 */
+	public SemanticVisitor(Map<String, VSOPClass> classMap) {
+		this(classMap, System.err);
 	}
 
-	public ASTProgram visitProgram(VSOPParser.ProgramContext ctx) {
+	/**
+	 * Prints and flushes any error in the {@link #errorQueue}
+	 * @return <code>true</code> if there were no errors, <code>false</code> otherwise.
+	 */
+	private boolean flushErrorQueue() {
+		if(errorQueue.isEmpty())
+			return true;
+
+		errorQueue.forEach(err::println);
+		errorQueue.clear();
+
+		return false;
+	}
+
+	/**
+	 * Proceed to semantic checking of the program
+	 * @param ctx - The {@link ProgramContext}
+	 * @return the {@link ASTProgram} corresponding to the given context if there is no error,
+	 * <code>null</code> otherwise.
+	 */
+	public ASTProgram check(ProgramContext ctx) {
+		ASTProgram program = visitProgram(ctx);
+		if(flushErrorQueue())
+			return program;
+		
+		return null;
+	}
+
+	private ASTProgram visitProgram(ProgramContext ctx) {
 		List<ASTClass> classes = new ArrayList<>(ctx.clazz().size());
-
-		ctx.clazz().stream().map(this::visitClass).forEach(classes::add);
+		ctx.clazz().stream()
+				.map(this::visitClass)
+				.forEach(classes::add);
 
 		return new ASTProgram(classes);
 	}
 
-	public ASTClass visitClass(VSOPParser.ClazzContext ctx) {
+	private ASTClass visitClass(ClazzContext ctx) {
 		String id = ctx.id.getText();
 		currentClass = classMap.get(id);
 		var body = ctx.classBody();
@@ -95,7 +129,7 @@ public class SemanticVisitor {
 		return new ASTClass(currentClass, fields, methods);
 	}
 
-	public ASTField visitField(VSOPParser.FieldContext ctx) {
+	private ASTField visitField(FieldContext ctx) {
 		inFieldInit = true;
 
 		VSOPField field = currentClass.fields.get(ctx.id.getText());
@@ -118,7 +152,7 @@ public class SemanticVisitor {
 		return new ASTField(field, value);
 	}
 
-	public ASTMethod visitMethod(VSOPParser.MethodContext ctx) {
+	private ASTMethod visitMethod(MethodContext ctx) {
 		String id = ctx.id.getText();
 
 		List<ASTFormal> formals = new ArrayList<>(ctx.formals().formal().size());
@@ -140,15 +174,15 @@ public class SemanticVisitor {
 		return new ASTMethod(method, formals, block);
 	}
 
-	public ASTFormal visitFormal(VSOPParser.FormalContext ctx) {
+	private ASTFormal visitFormal(FormalContext ctx) {
 		return new ASTFormal(ctx.id.getText(), getType(ctx.type()));
 	}
 
-	public ASTBlock visitBl(VSOPParser.BlContext ctx) {
+	private ASTBlock visitBl(BlContext ctx) {
 		return visitBlock(ctx.block());
 	}
 
-	public ASTBlock visitBlock(VSOPParser.BlockContext ctx) {
+	private ASTBlock visitBlock(BlockContext ctx) {
 		List<ASTExpr> expressions = new ArrayList<>(ctx.expr().size());
 
 		ctx.expr().stream().map(this::visitExpr).forEach(expressions::add);
@@ -158,12 +192,12 @@ public class SemanticVisitor {
 		return new ASTBlock(expressions, type);
 	}
 
-	public ASTExpr visitExpr(VSOPParser.ExprContext ctx) {
+	private ASTExpr visitExpr(ExprContext ctx) {
 		ASTExpr expr = exprDispatcher.get(ctx.getClass()).apply(ctx);
 		return expr;
 	}
 
-	public List<ASTExpr> visitArgs(VSOPParser.ArgsContext ctx) {
+	public List<ASTExpr> visitArgs(ArgsContext ctx) {
 		VSOPMethod method = methodStack.peek();
 
 		if (method != null && method.args.size() != ctx.expr().size()) {
@@ -189,15 +223,15 @@ public class SemanticVisitor {
 		return args;
 	}
 
-	public ASTLiteral visitLit(VSOPParser.LitContext ctx) {
+	private ASTLiteral visitLit(LitContext ctx) {
 		return visitLiteral(ctx.literal());
 	}
 
-	public ASTLiteral visitUnit(VSOPParser.UnitContext ctx) {
+	private ASTLiteral visitUnit(UnitContext ctx) {
 		return new ASTLiteral(UNIT, ctx.getText());
 	}
 
-	public ASTLiteral visitLiteral(VSOPParser.LiteralContext ctx) {
+	private ASTLiteral visitLiteral(LiteralContext ctx) {
 		VSOPType type = UNIT;
 		if (ctx.INTEGER_LITERAL() != null) {
 			type = INT32;
@@ -214,7 +248,7 @@ public class SemanticVisitor {
 		return new ASTLiteral(type, ctx.getText());
 	}
 
-	public VSOPType getType(VSOPParser.TypeContext ctx) {
+	public VSOPType getType(TypeContext ctx) {
 		String typeStr = ctx.getText();
 		VSOPType type = primitiveTypeMap.get(typeStr);
 
@@ -231,7 +265,7 @@ public class SemanticVisitor {
 		return type;
 	}
 
-	public ASTAss visitAss(VSOPParser.AssContext ctx) {
+	private ASTAss visitAss(AssContext ctx) {
 		String id = ctx.id.getText();
 		ASTExpr expr = visitExpr(ctx.expr());
 		VSOPType varType = varStack.get(id);
@@ -252,7 +286,7 @@ public class SemanticVisitor {
 		return new ASTAss(varType, expr);
 	}
 
-	public ASTNew visitNew(VSOPParser.NewContext ctx) {
+	private ASTNew visitNew(NewContext ctx) {
 		String id = ctx.id.getText();
 		VSOPType type = classMap.get(id);
 		if (type == null)
@@ -262,7 +296,7 @@ public class SemanticVisitor {
 		return new ASTNew(type);
 	}
 
-	public ASTWhile visitWhile(VSOPParser.WhileContext ctx) {
+	private ASTWhile visitWhile(WhileContext ctx) {
 		ASTExpr condition = visitExpr(ctx.expr(0));
 		ASTExpr body = visitExpr(ctx.expr(1));
 
@@ -273,29 +307,27 @@ public class SemanticVisitor {
 		return new ASTWhile(condition, body);
 	}
 
-	public ASTNot visitNot(VSOPParser.NotContext ctx) {
+	private ASTNot visitNot(NotContext ctx) {
 		ASTExpr expr = visitExpr(ctx.expr());
 
 		if (expr.type != BOOL) {
-			errorQueue.add(new SemanticError(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
-					"not operator can only be used with BOOL"));
+			errorQueue.add(new SemanticError(ctx, "not operator can only be used with BOOL"));
 		}
 
 		return new ASTNot(expr);
 	}
 
-	public ASTMinus visitMinus(VSOPParser.MinusContext ctx) {
+	private ASTMinus visitMinus(MinusContext ctx) {
 		ASTExpr expr = visitExpr(ctx.expr());
 
 		if (expr.type != INT32) {
-			errorQueue.add(new SemanticError(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
-					"minus operator can only be used with INT32"));
+			errorQueue.add(new SemanticError(ctx, "minus operator can only be used with INT32"));
 		}
 
 		return new ASTMinus(expr);
 	}
 
-	public ASTIsnull visitIsnull(VSOPParser.IsnullContext ctx) {
+	private ASTIsnull visitIsnull(IsnullContext ctx) {
 		ASTExpr expr = visitExpr(ctx.expr());
 
 		if (primitiveTypes.contains(expr.type))
@@ -304,7 +336,7 @@ public class SemanticVisitor {
 		return new ASTIsnull(expr);
 	}
 
-	public ASTCall visitSelfcall(VSOPParser.SelfcallContext ctx) {
+	private ASTCall visitSelfcall(SelfcallContext ctx) {
 		String id = ctx.id.getText();
 
 		VSOPMethod method = currentClass.functions.get(id);
@@ -322,7 +354,7 @@ public class SemanticVisitor {
 		return new ASTCall(method, new ASTSelf(currentClass), args);
 	}
 
-	public ASTCall visitCall(VSOPParser.CallContext ctx) {
+	private ASTCall visitCall(CallContext ctx) {
 		String id = ctx.id.getText();
 
 		ASTExpr object = visitExpr(ctx.expr());
@@ -348,11 +380,11 @@ public class SemanticVisitor {
 		return new ASTCall(method, object, args);
 	}
 
-	public ASTSelf visitSelf(VSOPParser.SelfContext ctx) {
+	private ASTSelf visitSelf(SelfContext ctx) {
 		return new ASTSelf(currentClass);
 	}
 
-	public ASTLet visitLet(VSOPParser.LetContext ctx) {
+	private ASTLet visitLet(LetContext ctx) {
 
 		String id = ctx.id.getText();
 		VSOPType varType = getType(ctx.type());
@@ -371,7 +403,7 @@ public class SemanticVisitor {
 		return new ASTLet(varType, id, value, in);
 	}
 
-	public ASTOi visitOi(VSOPParser.OiContext ctx) {
+	private ASTOi visitOi(OiContext ctx) {
 		String id = ctx.id.getText();
 
 		VSOPType type = varStack.get(id);
@@ -389,7 +421,7 @@ public class SemanticVisitor {
 		return new ASTOi(type, id);
 	}
 
-	public ASTIf visitIf(VSOPParser.IfContext ctx) {
+	private ASTIf visitIf(IfContext ctx) {
 
 		ASTExpr condition = visitExpr(ctx.expr(0));
 
@@ -429,11 +461,11 @@ public class SemanticVisitor {
 		return new ASTIf(type, condition, then, elze);
 	}
 
-	public ASTExpr visitBraceExpr(VSOPParser.BraceExprContext ctx) {
+	private ASTExpr visitBraceExpr(BraceExprContext ctx) {
 		return visitExpr(ctx.expr());
 	}
 
-	public ASTBinop visitBinop(VSOPParser.BinopContext ctx) {
+	private ASTBinop visitBinop(BinopContext ctx) {
 		String operatorId = ctx.op.getText();
 		ASTExpr leftExpr = visitExpr(ctx.expr(0));
 		ASTExpr rightExpr = visitExpr(ctx.expr(1));

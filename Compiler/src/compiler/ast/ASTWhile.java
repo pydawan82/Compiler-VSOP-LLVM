@@ -2,6 +2,8 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
+import compiler.llvm.Context;
+
 import static compiler.vsop.VSOPConstants.UNIT;
 
 public class ASTWhile extends ASTExpr {

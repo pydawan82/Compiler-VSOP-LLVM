@@ -2,6 +2,7 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
+import compiler.llvm.Context;
 import compiler.vsop.VSOPType;
 
 public class ASTAss extends ASTExpr {

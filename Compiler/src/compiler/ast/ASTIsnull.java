@@ -2,6 +2,8 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
+import compiler.llvm.Context;
+
 import static compiler.vsop.VSOPConstants.BOOL;
 
 public class ASTIsnull extends ASTExpr {

@@ -1,74 +1,35 @@
 package compiler;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-
-import compiler.ast.ASTProgram;
+import compiler.error.LexicalError;
+import compiler.error.SemanticError;
+import compiler.error.SyntaxError;
 import compiler.parsing.VSOPLexer;
 import compiler.parsing.VSOPParser;
-import compiler.util.Chrono;
-import compiler.vsop.SemanticError;
-import compiler.vsop.VSOPClass;
 
-import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.Vocabulary;
 
+/**
+ * A VSOP to LLVM compiler
+ */
 public class Compiler {
-
-	private PrintStream out = System.out;
-	private PrintStream err = System.err;
-	private VSOPLexer lexer;
-	private VSOPParser parser;
-	private String fName;
-	private List<String> textTypes = Arrays.asList("INTEGER_LITERAL", "STRING_LITERAL", "OBJECT_IDENTIFIER",
-			"TYPE_IDENTIFIER");
-
-	private boolean success = false;
+	private CharStream input;
 
 	/**
 	 * Creates a new Compiler that will comile the given file.
 	 * 
-	 * @param fName - The name of the file
+	 * @param fileName - The name of the file
 	 * @throws IOException if an I/O error occurs.
 	 */
-	public Compiler(String fName) throws IOException {
-		CharStream input = CharStreams.fromFileName(fName);
-		lexer = new VSOPLexer(input);
-		this.fName = fName;
+	public Compiler(String fileName) throws IOException {
+		input = CharStreams.fromFileName(fileName);
 
-		lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
-		lexer.addErrorListener(new BaseErrorListener() {
-			@Override
-			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-					int charPositionInLine, String msg, RecognitionException e) {
-				success = false;
-				printTokenError(line, charPositionInLine + 1, msg);
-			}
-		});
-
-		parser = new VSOPParser(new CommonTokenStream(lexer));
-		parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
-		parser.addErrorListener(new BaseErrorListener() {
-			@Override
-			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-					int charPositionInLine, String msg, RecognitionException e) {
-				success = false;
-				printSyntaxError(line, charPositionInLine + 1, msg);
-			}
-		});
-
+		LexicalError.FILE_NAME = fileName;
+		SyntaxError.FILE_NAME = fileName;
+		SemanticError.FILE_NAME = fileName;
 	}
 
 	/**
@@ -76,109 +37,34 @@ public class Compiler {
 	 * lexical errors on System.err
 	 * 
 	 * @return <code>true</code> if the lexing terminated withou any error,
-	 *         <code>false</code> otherwise.
+	 * <code>false</code> otherwise.
 	 */
 	public boolean lex() {
-		success = true;
-		Vocabulary voc = lexer.getVocabulary();
-		while (true) {
-			Token t = lexer.nextToken();
-			if (t.getType() == -1)
-				break;
-
-			String txt = null;
-			if (textTypes.contains(voc.getSymbolicName(t.getType())))
-				txt = t.getText();
-
-			printToken(t.getLine(), t.getCharPositionInLine() + 1, toLowerCase(voc.getSymbolicName(t.getType())), txt);
-		}
-
-		return success;
+		VSOPLexer lexer = new VSOPLexer(input);
+		return new LexicalAnalyzer(lexer).lex();
 	}
 
 	/**
-	 * Returns the lowercase version of the token name in order to respect naming
-	 * convetions.
-	 * 
-	 * @param tokenName - The name of the token
-	 * @return The lower caser version of the token
+	 * Proceed to the syntax analysis and previous phases of compiling.
+	 * The file parsed is the one given to this {@link Compiler}.
+	 * @return <code>true</code> if parsing terminated without any error,
+	 * <code>false</code> otherwise.
 	 */
-	private static String toLowerCase(String tokenName) {
-		String lower = tokenName.toLowerCase();
-		return lower.replace('_', '-');
-	}
-
-	/**
-	 * Prints the token on System.out
-	 * 
-	 * @param ln   - The line of the first char of the token
-	 * @param cl   - The column of the first char of the token
-	 * @param type - The name of the type of the token
-	 * @param text - The text of the token or null if nothing should not be printed
-	 */
-	private void printToken(int ln, int cl, String type, String text) {
-		out.printf("%d,%d,%s", ln, cl, type);
-		if (text != null)
-			out.printf(",%s", text);
-		out.println();
-	}
-
-	/**
-	 * Prints the token error on System.err
-	 * 
-	 * @param ln  - The line of the error
-	 * @param cl  - The column of the error
-	 * @param msg - The message representing the error
-	 */
-	private void printTokenError(int ln, int cl, String msg) {
-		err.printf("%s:%d:%d: lexical error: %s", fName, ln, cl, msg);
-		err.println();
-	}
-
-	private void printSyntaxError(int ln, int cl, String msg) {
-		err.printf("%s:%d:%d: syntax error: %s", fName, ln, cl, msg);
-		err.println();
-	}
-
 	public boolean parse() {
-		success = true;
-		ParseTree tree = parser.program();
-		CustomVisitor visitor = new CustomVisitor();
-		try/* (Chrono c = new Chrono()) */ {
-			visitor.visit(tree);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return success;
+		VSOPLexer lexer = new VSOPLexer(input);
+		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
+		return new SyntaxAnalyzer(parser).parse();
 	}
 
+	/**
+	 * Proceed to the semantic checking and previous phases of compiling.
+	 * The file parsed is the one given to this {@link Compiler}
+	 * @return
+	 */
 	public boolean check() {
-		SemanticError.fName = fName;
-		success = true;
-		VSOPParser.ProgramContext ctx = parser.program();
-		
-		if (ctx == null) {
-			err.println(new SemanticError("Input is not a valid program"));
-			return false;
-		}
-		
-		ClassVisitor visitor = new ClassVisitor();
-		try(Chrono c = new Chrono()) {
-			Map<String, VSOPClass> map = visitor.classMap(ctx);
-			if (map == null)
-				return false;
-
-			SemanticVisitor v = new SemanticVisitor(map);
-			ASTProgram program = v.visitProgram(ctx);
-			success = v.errorQueue.isEmpty();
-			v.flushErrorQueue();
-			program.print(System.out);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return success;
+		VSOPLexer lexer = new VSOPLexer(input);
+		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
+		return new SemanticChecker(parser).check();
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -191,34 +77,17 @@ public class Compiler {
 			return;
 		}
 
-		Compiler c = new Compiler(args[1]);
+		String fileName = args[1];
+		Compiler c = new Compiler(fileName);
 
-		switch (args[0]) {
-		case "-l":
-			if (c.lex())
-				System.exit(0);
-			else
-				System.exit(-1);
-			return;
+		boolean success = switch (args[0]) {
+			case "-l" -> c.lex();
+			case "-p" -> c.parse();
+			case "-c" -> c.check();
+			default -> false;
+		};
 
-		case "-p":
-			if (c.parse())
-				System.exit(0);
-			else
-				System.exit(-1);
-			return;
-
-		case "-c":
-			if (c.check())
-				System.exit(0);
-			else
-				System.exit(-1);
-			return;
-
-		default:
-			System.err.println("Unrecognized parameter \"" + args[0] + "\"");
-			System.exit(-1);
-			return;
-		}
+		System.out.println("Sucess:" + success);
+		System.exit(success ? 0 : -1);
 	}
 }

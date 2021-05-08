@@ -1,0 +1,86 @@
+Date : 2021-04-26 20:41:28
+Directory : e:\Data\David\git\Compiler-VSOP-LLVM
+Total : 49 files,  4435 codes, 670 comments, 849 blanks, all 5954 lines
+
+Languages
++--------------+------------+------------+------------+------------+------------+
+| language     | files      | code       | comment    | blank      | total      |
++--------------+------------+------------+------------+------------+------------+
+| Java         |         44 |      4,189 |        645 |        781 |      5,615 |
+| ANTLR        |          2 |        203 |         24 |         53 |        280 |
+| Makefile     |          1 |         22 |          0 |          7 |         29 |
+| Markdown     |          1 |         18 |          0 |          6 |         24 |
+| Shell Script |          1 |          3 |          1 |          2 |          6 |
++--------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                           | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                              |         49 |      4,435 |        670 |        849 |      5,954 |
+| Compiler                                                                                       |         48 |      4,417 |        670 |        843 |      5,930 |
+| Compiler\grammars                                                                              |          2 |        203 |         24 |         53 |        280 |
+| Compiler\src                                                                                   |         44 |      4,189 |        645 |        781 |      5,615 |
+| Compiler\src\compiler                                                                          |         44 |      4,189 |        645 |        781 |      5,615 |
+| Compiler\src\compiler\ast                                                                      |         21 |        577 |          7 |        228 |        812 |
+| Compiler\src\compiler\llvm                                                                     |          3 |         41 |          0 |         17 |         58 |
+| Compiler\src\compiler\parsing                                                                  |          4 |      2,196 |        595 |        108 |      2,899 |
+| Compiler\src\compiler\util                                                                     |          4 |         59 |          0 |         23 |         82 |
+| Compiler\src\compiler\vsop                                                                     |          7 |        267 |          0 |         82 |        349 |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| filename                                                                                       | language     | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\Makefile                                         | Makefile     |         22 |          0 |          7 |         29 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\grammars\VSOPLexer.g4                            | ANTLR        |        156 |         24 |         48 |        228 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\grammars\VSOPParser.g4                           | ANTLR        |         47 |          0 |          5 |         52 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ClassVisitor.java                   | Java         |        171 |          8 |         55 |        234 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\Compiler.java                       | Java         |        155 |         35 |         35 |        225 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\CustomVisitor.java                  | Java         |        328 |          0 |        108 |        436 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\SemanticVisitor.java                | Java         |        361 |          0 |        113 |        474 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\VariableStack.java                  | Java         |         34 |          0 |         12 |         46 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTAss.java                     | Java         |         25 |          0 |          8 |         33 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTBinop.java                   | Java         |         30 |          0 |         11 |         41 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTBlock.java                   | Java         |         38 |          0 |         14 |         52 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTCall.java                    | Java         |         46 |          1 |         14 |         61 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTClass.java                   | Java         |         55 |          0 |         22 |         77 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTExpr.java                    | Java         |          8 |          0 |          6 |         14 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTField.java                   | Java         |         27 |          0 |         13 |         40 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTFormal.java                  | Java         |         22 |          0 |          9 |         31 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTIf.java                      | Java         |         36 |          1 |         13 |         50 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTIsnull.java                  | Java         |         19 |          1 |          9 |         29 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTLet.java                     | Java         |         34 |          0 |         11 |         45 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTLiteral.java                 | Java         |         21 |          1 |          8 |         30 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTMethod.java                  | Java         |         47 |          0 |         21 |         68 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTMinus.java                   | Java         |         19 |          0 |          8 |         27 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTNew.java                     | Java         |         20 |          0 |          8 |         28 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTNode.java                    | Java         |         17 |          0 |          9 |         26 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTNot.java                     | Java         |         22 |          1 |          9 |         32 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTOi.java                      | Java         |         21 |          0 |          9 |         30 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTProgram.java                 | Java         |         28 |          1 |          9 |         38 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTSelf.java                    | Java         |         15 |          1 |          8 |         24 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\ast\ASTWhile.java                   | Java         |         27 |          0 |          9 |         36 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\llvm\Context.java                   | Java         |         11 |          0 |          6 |         17 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\llvm\LLVMGenerator.java             | Java         |         18 |          0 |          7 |         25 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\llvm\Variable.java                  | Java         |         12 |          0 |          4 |         16 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\parsing\VSOPLexer.java              | Java         |        469 |          4 |         52 |        525 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\parsing\VSOPParser.java             | Java         |      1,597 |          4 |         50 |      1,651 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\parsing\VSOPParserBaseListener.java | Java         |         68 |        316 |          4 |        388 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\parsing\VSOPParserListener.java     | Java         |         62 |        271 |          2 |        335 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\util\Chrono.java                    | Java         |         22 |          0 |          8 |         30 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\util\Node.java                      | Java         |         10 |          0 |          4 |         14 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\util\Pair.java                      | Java         |          9 |          0 |          4 |         13 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\util\Tree.java                      | Java         |         18 |          0 |          7 |         25 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\SemanticError.java             | Java         |         35 |          0 |         12 |         47 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\VSOPBinOp.java                 | Java         |         11 |          0 |          3 |         14 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\VSOPClass.java                 | Java         |        104 |          0 |         34 |        138 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\VSOPConstants.java             | Java         |         43 |          0 |         11 |         54 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\VSOPField.java                 | Java         |         44 |          0 |         10 |         54 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\VSOPMethod.java                | Java         |         18 |          0 |          8 |         26 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\src\compiler\vsop\VSOPType.java                  | Java         |         12 |          0 |          4 |         16 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\Compiler\vsopc.sh                                         | Shell Script |          3 |          1 |          2 |          6 |
+| e:\Data\David\git\Compiler-VSOP-LLVM\README.md                                                 | Markdown     |         18 |          0 |          6 |         24 |
+| Total                                                                                          |              |      4,435 |        670 |        849 |      5,954 |
++------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+

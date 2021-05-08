@@ -1,17 +1,19 @@
-package compiler;
+package compiler.visitors;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 
+import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser;
 import compiler.util.Node;
 import compiler.util.Pair;
 import compiler.util.Tree;
-import compiler.vsop.SemanticError;
 import compiler.vsop.VSOPClass;
 import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
@@ -20,38 +22,40 @@ import compiler.vsop.VSOPType;
 import static compiler.vsop.VSOPConstants.*;
 
 public class ClassVisitor {
+	private PrintStream err;
+
 	private Queue<Runnable> taskQueue = new LinkedList<>();
 	private Map<String, Node<VSOPClass>> classMap = new HashMap<>();
 	private Queue<SemanticError> errorQueue = new LinkedList<SemanticError>();
 	private Tree<VSOPClass> classTree = new Tree<>(OBJECT);
 
+	public ClassVisitor(PrintStream err) {
+		this.err = Objects.requireNonNull(err);
+
+		classMap.put(OBJECT.id, classTree.root());
+	}
+
 	public ClassVisitor() {
-		classMap.put(OBJECT.id, classTree.root);
+		this(System.err);
 	}
 
 	private void flushTaskQueue() {
-		taskQueue.forEach((task) -> task.run());
+		taskQueue.forEach(Runnable::run);
 		taskQueue.clear();
 	}
 
 	private void flushErrorQueue() {
-		errorQueue.forEach((err) -> err.print());
+		errorQueue.forEach(err::println);
 		errorQueue.clear();
 	}
 
 	private boolean checkCyclicInheritance() {
-		/*
-		 * boolean ok = true;
-		 * 
-		 * for (var key : classMap.keySet()) { VSOPClass cl = classMap.get(key).value;
-		 * SemanticError e = cl.checkCyclicInheritance(); if (e != null) {
-		 * errorQueue.add(e); ok = false; } }
-		 */
-
-		// STREAM Version
-		return classMap.values().stream().map((node) -> node.value.checkCyclicInheritance())
-				.filter((error) -> error != null).map(errorQueue::add).reduce(true, Boolean::logicalAnd);
-
+		return classMap.values().stream()
+				.map(Node::value)
+				.map(VSOPClass::checkCyclicInheritance)
+				.filter(Objects::nonNull)
+				.map(errorQueue::add)
+				.reduce(true, Boolean::logicalAnd);
 	}
 
 	private void checkInheritance() {
@@ -68,10 +72,10 @@ public class ClassVisitor {
 			return;
 		}
 
-		VSOPMethod m = main.value.functions.get(MAIN_METHOD);
+		VSOPMethod m = main.value().functions.get(MAIN_METHOD);
 		if (m == null) {
-			errorQueue.add(
-					new SemanticError(String.format("Could not find %s method in class %s", MAIN_METHOD, MAIN_CLASS)));
+			errorQueue.add(new SemanticError(String.format(
+					"Could not find %s method in class %s", MAIN_METHOD, MAIN_CLASS)));
 			return;
 		}
 
@@ -97,7 +101,7 @@ public class ClassVisitor {
 
 		final Map<String, VSOPClass> map = new HashMap<>();
 		classMap.forEach((key, node) -> {
-			map.put(key, node.value);
+			map.put(key, node.value());
 		});
 
 		return hasError ? map : null;
@@ -116,23 +120,21 @@ public class ClassVisitor {
 
 		Pair<Map<String, VSOPField>, Map<String, VSOPMethod>> pair = visitClassBody(ctx.classBody());
 
-		VSOPClass clazz = new VSOPClass(id, null, pair.first, pair.second, ctx);
+		VSOPClass clazz = new VSOPClass(id, null, pair.first(), pair.second(), ctx);
 		Node<VSOPClass> node = new Node<>(clazz);
 		Node<VSOPClass> old = classMap.putIfAbsent(id, node);
 
 		if (old != null)
-			errorQueue.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
-					String.format("Class %s is redefined", id)));
+			errorQueue.add(new SemanticError(ctx.id, String.format("Class %s is redefined", id)));
 
 		taskQueue.add(() -> {
 			Node<VSOPClass> parent = classMap.get(superId);
 
 			if (parent == null)
-				errorQueue.add(new SemanticError(ctx.idext.getLine(), ctx.idext.getCharPositionInLine(),
-						String.format("Class %s is undefined", superId)));
+				errorQueue.add(new SemanticError(ctx.idext, String.format("Class %s is undefined", superId)));
 			else {
-				clazz.superClass = parent.value;
-				parent.childs.add(node);
+				clazz.superClass = parent.value();
+				parent.addChild(node);
 			}
 		});
 
@@ -147,8 +149,7 @@ public class ClassVisitor {
 			VSOPField f = visitField(field);
 			VSOPField old = fields.putIfAbsent(f.id, f);
 			if (old != null) {
-				errorQueue.add(new SemanticError(field.start.getLine(), field.start.getCharPositionInLine(),
-						String.format("redefinition of field %s", field.id.getText())));
+				errorQueue.add(new SemanticError(field.start, String.format("redefinition of field %s", field.id.getText())));
 			}
 		}
 
@@ -158,8 +159,7 @@ public class ClassVisitor {
 			VSOPMethod m = visitMethod(method);
 			VSOPMethod old = methods.putIfAbsent(m.id, m);
 			if (old != null) {
-				errorQueue.add(new SemanticError(method.start.getLine(), method.start.getCharPositionInLine(),
-						String.format("redefinition of method %s", method.id.getText())));
+				errorQueue.add(new SemanticError(method.start, String.format("redefinition of method %s", method.id.getText())));
 			}
 		}
 
@@ -201,7 +201,7 @@ public class ClassVisitor {
 			VSOPField field = getFormal(formal);
 
 			if (formalNames.containsKey(field.id)) {
-				errorQueue.add(new SemanticError(formal, String.format("Duplicate formal name %s", field.id)));
+				errorQueue.add(new SemanticError(formal.start, String.format("Duplicate formal name %s", field.id)));
 			}
 
 			formalNames.put(field.id, field);
@@ -224,7 +224,7 @@ public class ClassVisitor {
 
 		Node<VSOPClass> node = classMap.get(txt);
 
-		if (node == null || (type = node.value) == null)
+		if (node == null || (type = node.value()) == null)
 			errorQueue.add(new SemanticError(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
 					String.format("Type %s is undefined", ctx.getText())));
 

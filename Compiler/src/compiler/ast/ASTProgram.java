@@ -3,6 +3,8 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
+import compiler.llvm.Context;
+
 public class ASTProgram extends ASTNode {
 
     public List<ASTClass> classes;
