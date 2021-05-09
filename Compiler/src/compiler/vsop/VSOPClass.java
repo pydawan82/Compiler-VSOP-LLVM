@@ -1,5 +1,7 @@
 package compiler.vsop;
 
+import java.io.PrintStream;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;

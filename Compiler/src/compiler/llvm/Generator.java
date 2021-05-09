@@ -19,7 +19,7 @@ public class Generator {
     /**
      * Creates a new generator given a program tree and a map of defined classes.
      * @param ast - The program tree
-     * @param classMap - The map of defined classes.
+     * @param classMap - The map of defined classes
      */
     public Generator(ASTProgram ast, Map<String, VSOPClass> classMap) {
         this.ast = Objects.requireNonNull(ast);
@@ -28,10 +28,16 @@ public class Generator {
 
     /**
      * Emits LLVM source code to a given {@link PrintStream}
-     * @param pStream - The {@link PrintStream} to be written
+     * @param out - The {@link PrintStream} to be written
      */
-    public void emitLLVM(PrintStream pStream) {
+    public void emitLLVM(PrintStream out) {
         Context ctx = new Context(classMap, new HashMap<>());
-        ast.emitLLVM(pStream, ctx);
+
+        defineStructures(out, ctx);
+
+        ast.emitLLVM(out, ctx);
+    }
+
+    private void defineStructures(PrintStream out, Context ctx) {
     }
 }
