@@ -1,12 +1,19 @@
 package compiler;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.Objects;
 
+import compiler.ast.ASTProgram;
 import compiler.error.LexicalError;
 import compiler.error.SemanticError;
 import compiler.error.SyntaxError;
+import compiler.llvm.Generator;
 import compiler.parsing.VSOPLexer;
 import compiler.parsing.VSOPParser;
+import compiler.util.Pair;
+import compiler.vsop.VSOPClass;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -16,7 +23,13 @@ import org.antlr.v4.runtime.CommonTokenStream;
  * A VSOP to LLVM compiler
  */
 public class Compiler {
-	private CharStream input;
+
+	private static int SUCCESS = 0;
+	private static int FAIL = -1;
+	private static int IO_ERROR = -2;
+
+	private String fileName;
+	private PrintStream out;
 
 	/**
 	 * Creates a new Compiler that will comile the given file.
@@ -24,12 +37,31 @@ public class Compiler {
 	 * @param fileName - The name of the file
 	 * @throws IOException if an I/O error occurs.
 	 */
-	public Compiler(String fileName) throws IOException {
-		input = CharStreams.fromFileName(fileName);
+	public Compiler(String fileName, PrintStream out) throws IOException {
+		this.fileName = fileName;
+		this.out = Objects.requireNonNull(out);
 
 		LexicalError.FILE_NAME = fileName;
 		SyntaxError.FILE_NAME = fileName;
 		SemanticError.FILE_NAME = fileName;
+	}
+
+	public CharStream input() {
+		try {
+			return CharStreams.fromFileName(fileName);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(IO_ERROR);
+			return null;
+		}
+	}
+
+	public VSOPLexer lexer() {
+		return new VSOPLexer(input());
+	}
+
+	public VSOPParser parser() {
+		return new VSOPParser(new CommonTokenStream(lexer()));
 	}
 
 	/**
@@ -40,8 +72,7 @@ public class Compiler {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean lex() {
-		VSOPLexer lexer = new VSOPLexer(input);
-		return new LexicalAnalyzer(lexer).lex();
+		return new LexicalAnalyzer(lexer()).lex();
 	}
 
 	/**
@@ -51,9 +82,7 @@ public class Compiler {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean parse() {
-		VSOPLexer lexer = new VSOPLexer(input);
-		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
-		return new SyntaxAnalyzer(parser).parse();
+		return new SyntaxAnalyzer(parser()).parse();
 	}
 
 	/**
@@ -62,14 +91,34 @@ public class Compiler {
 	 * @return
 	 */
 	public boolean check() {
-		VSOPLexer lexer = new VSOPLexer(input);
-		VSOPParser parser = new VSOPParser(new CommonTokenStream(lexer));
-		return new SemanticChecker(parser).check();
+		Pair<Map<String, VSOPClass>, ASTProgram> result = new SemanticChecker(parser()).check();
+
+		if(result == null)
+			return false;
+		
+		result.second().print(out);
+
+		return true;
+	}
+
+	public boolean compile() {
+		SemanticChecker checker = new SemanticChecker(parser());
+		Pair<Map<String, VSOPClass>, ASTProgram> result = checker.check();
+
+		if(result == null) {
+			System.err.println("Failed semantic checking, aborting");
+			return false;
+		}
+
+		Generator generator = new Generator(result.second(), result.first(), out);
+		generator.emitLLVM();
+
+		return true;
 	}
 
 	public static void main(String[] args) throws IOException {
 
-		args = "-c Compiler/vsop-examples/main.vsop".split(" ");
+		args = "-o Compiler/vsop-examples/list.vsop".split(" ");
 
 		if (args.length != 2) {
 			System.err.println("Usage: vsopc [-l|-p|-c] *input_file*");
@@ -78,16 +127,17 @@ public class Compiler {
 		}
 
 		String fileName = args[1];
-		Compiler c = new Compiler(fileName);
+		Compiler c = new Compiler(fileName, System.out);
 
 		boolean success = switch (args[0]) {
 			case "-l" -> c.lex();
 			case "-p" -> c.parse();
 			case "-c" -> c.check();
+			case "-o" -> c.compile();
 			default -> false;
 		};
 
 		System.out.println("Sucess:" + success);
-		System.exit(success ? 0 : -1);
+		System.exit(success ? SUCCESS : FAIL);
 	}
 }

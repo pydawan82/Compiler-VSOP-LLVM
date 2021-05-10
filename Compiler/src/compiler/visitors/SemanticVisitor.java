@@ -400,7 +400,7 @@ public class SemanticVisitor {
 		ASTExpr in = visitExpr(ctx.ex);
 		varStack.pop(id);
 
-		return new ASTLet(varType, id, value, in);
+		return new ASTLet(in.type, id, value, in);
 	}
 
 	private ASTOi visitOi(OiContext ctx) {

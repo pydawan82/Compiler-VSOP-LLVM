@@ -1,9 +1,12 @@
 package compiler.llvm;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import compiler.vsop.VSOPClass;
+import compiler.vsop.VSOPField;
+import compiler.vsop.VSOPMethod;
 
 /**
  * A context class to store any data related to code generation
@@ -20,6 +23,11 @@ public class Context {
      * A map from defined variables names to their corresponding {@link Variable}
      */
     public final Map<String, Variable<?>> vars;
+
+    public final Map<String, String> param = new HashMap<>();
+
+    public final Map<VSOPField, Integer> fieldOrdinal = new HashMap<>();
+    public final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
 
     /**
      * Creates a new context given a map of classes and a map of variables

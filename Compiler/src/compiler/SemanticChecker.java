@@ -7,6 +7,7 @@ import java.util.Objects;
 import compiler.ast.ASTProgram;
 import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser;
+import compiler.util.Pair;
 import compiler.visitors.ClassVisitor;
 import compiler.visitors.SemanticVisitor;
 import compiler.vsop.VSOPClass;
@@ -51,26 +52,24 @@ public class SemanticChecker {
      * @return <code>true</code> if checking terminated without errors,
      * <code>false</code> otherwise.
      */
-    public boolean check() {
+    public Pair<Map<String, VSOPClass>, ASTProgram> check() {
 		VSOPParser.ProgramContext ctx = parser.program();
 		
 		if(ctx == null) {
-			System.err.println(new SemanticError("Input is not a valid program"));
-			return false;
+			err.println(new SemanticError("Input is not a valid program"));
+			return null;
 		}
 		
 		ClassVisitor classVisitor = new ClassVisitor(err);
         Map<String, VSOPClass> map = classVisitor.classMap(ctx);
         if(map == null)
-            return false;
+            return null;
 
         SemanticVisitor semanticVisitor = new SemanticVisitor(map);
         ASTProgram program = semanticVisitor.check(ctx);
         if(program == null)
-            return false;
+            return null;
 
-        program.print(out);
-
-		return true;
+		return new Pair<Map<String, VSOPClass>, ASTProgram>(map, program);
     }
 }

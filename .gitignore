@@ -1,6 +1,9 @@
 #VSCode Counter
 .VSCodeCounter/**
 
+#Ignored folders
+runtime/**
+
 # Compiled class file
 *.class
 

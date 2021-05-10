@@ -29,10 +29,11 @@ public class ASTField extends ASTNode{
 
 		pStream.printf("Field(%s, %s", vsopField.id, vsopField.type.id);
 
-		if(expr.isPresent())
+		if(expr.isPresent()) {
             pStream.print(", ");
             expr.get().print(pStream, indent+1);
-
+        }
+        
 		pStream.print(')');
     }
     
