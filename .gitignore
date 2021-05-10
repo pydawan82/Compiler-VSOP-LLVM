@@ -3,6 +3,7 @@
 
 #Ignored folders
 runtime/**
+output/**
 
 # Compiled class file
 *.class

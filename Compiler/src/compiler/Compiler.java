@@ -127,7 +127,7 @@ public class Compiler {
 		}
 
 		String fileName = args[1];
-		Compiler c = new Compiler(fileName, System.out);
+		Compiler c = new Compiler(fileName, new PrintStream("output/program.ll"));
 
 		boolean success = switch (args[0]) {
 			case "-l" -> c.lex();
