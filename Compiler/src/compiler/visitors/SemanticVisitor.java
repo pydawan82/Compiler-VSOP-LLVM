@@ -14,6 +14,7 @@ import java.util.function.Function;
 import compiler.ast.*;
 import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser.*;
+import compiler.util.Pair;
 import compiler.util.VariableStack;
 import compiler.vsop.VSOPBinOp;
 import compiler.vsop.VSOPClass;
@@ -30,9 +31,10 @@ public class SemanticVisitor {
 
 	private PrintStream err;
 
-	private Map<Class<?>, Function<ExprContext, ASTExpr>> exprDispatcher = new HashMap<>();
+	private Map<Class<?>, Function<ExprContext, ASTExpr>> dispatcher;
 
-	private Map<String, VSOPClass> classMap = new HashMap<>();
+	private Map<String, VSOPClass> classMap;
+	private Map<VSOPMethod, ASTExpr> methods = new HashMap<>();
 	private VSOPClass currentClass;
 	private boolean inFieldInit = false;
 
@@ -50,23 +52,25 @@ public class SemanticVisitor {
 		this.classMap = classMap;
 		this.err = err;
 		
-		exprDispatcher.put(IfContext.class,  c -> visitIf((IfContext) c));
-		exprDispatcher.put(WhileContext.class, c -> visitWhile((WhileContext) c));
-		exprDispatcher.put(LetContext.class, c -> visitLet((LetContext) c));
-		exprDispatcher.put(AssContext.class, c -> visitAss((AssContext) c));
-		exprDispatcher.put(NotContext.class, c -> visitNot((NotContext) c));
-		exprDispatcher.put(BinopContext.class, c -> visitBinop((BinopContext) c));
-		exprDispatcher.put(MinusContext.class, c -> visitMinus((MinusContext) c));
-		exprDispatcher.put(IsnullContext.class, c -> visitIsnull((IsnullContext) c));
-		exprDispatcher.put(SelfcallContext.class, c -> visitSelfcall((SelfcallContext) c));
-		exprDispatcher.put(CallContext.class, c -> visitCall((CallContext) c));
-		exprDispatcher.put(NewContext.class, c -> visitNew((NewContext) c));
-		exprDispatcher.put(OiContext.class, c -> visitOi((OiContext) c));
-		exprDispatcher.put(SelfContext.class, c -> visitSelf((SelfContext) c));
-		exprDispatcher.put(BraceExprContext.class, c -> visitBraceExpr((BraceExprContext) c));
-		exprDispatcher.put(LitContext.class, c -> visitLit((LitContext) c));
-		exprDispatcher.put(BlContext.class, c -> visitBl((BlContext) c));
-		exprDispatcher.put(UnitContext.class, c -> visitUnit((UnitContext) c));
+		dispatcher = Map.ofEntries(
+			Map.entry(IfContext.class,  c -> visitIf((IfContext) c)),
+			Map.entry(WhileContext.class, c -> visitWhile((WhileContext) c)),
+			Map.entry(LetContext.class, c -> visitLet((LetContext) c)),
+			Map.entry(AssContext.class, c -> visitAss((AssContext) c)),
+			Map.entry(NotContext.class, c -> visitNot((NotContext) c)),
+			Map.entry(BinopContext.class, c -> visitBinop((BinopContext) c)),
+			Map.entry(MinusContext.class, c -> visitMinus((MinusContext) c)),
+			Map.entry(IsnullContext.class, c -> visitIsnull((IsnullContext) c)),
+			Map.entry(SelfcallContext.class, c -> visitSelfcall((SelfcallContext) c)),
+			Map.entry(CallContext.class, c -> visitCall((CallContext) c)),
+			Map.entry(NewContext.class, c -> visitNew((NewContext) c)),
+			Map.entry(OiContext.class, c -> visitOi((OiContext) c)),
+			Map.entry(SelfContext.class, c -> visitSelf((SelfContext) c)),
+			Map.entry(BraceExprContext.class, c -> visitBraceExpr((BraceExprContext) c)),
+			Map.entry(LitContext.class, c -> visitLit((LitContext) c)),
+			Map.entry(BlContext.class, c -> visitBl((BlContext) c)),
+			Map.entry(UnitContext.class, c -> visitUnit((UnitContext) c))
+		);
 	}
 
 	/**
@@ -98,10 +102,10 @@ public class SemanticVisitor {
 	 * @return the {@link ASTProgram} corresponding to the given context if there is no error,
 	 * <code>null</code> otherwise.
 	 */
-	public ASTProgram check(ProgramContext ctx) {
+	public Pair<ASTProgram, Map<VSOPMethod, ASTExpr>> check(ProgramContext ctx) {
 		ASTProgram program = visitProgram(ctx);
 		if(flushErrorQueue())
-			return program;
+			return new Pair<ASTProgram, Map<VSOPMethod, ASTExpr>>(program, methods);
 		
 		return null;
 	}
@@ -163,6 +167,11 @@ public class SemanticVisitor {
 			varStack.push(field.id, field.type);
 
 		ASTBlock block = visitBlock(ctx.block());
+		
+		/*
+		 * /!\ IMPORTANT /!\
+		 */
+		methods.put(method, block);
 
 		for (var field : method.args)
 			varStack.pop(field.id);
@@ -193,7 +202,7 @@ public class SemanticVisitor {
 	}
 
 	private ASTExpr visitExpr(ExprContext ctx) {
-		ASTExpr expr = exprDispatcher.get(ctx.getClass()).apply(ctx);
+		ASTExpr expr = dispatcher.get(ctx.getClass()).apply(ctx);
 		return expr;
 	}
 

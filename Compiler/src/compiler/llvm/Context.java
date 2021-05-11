@@ -17,17 +17,20 @@ public class Context {
     /**
      * A map from defined class'names to their corresponding {@link VSOPClass}
      */
-    public final Map<String, VSOPClass> classMap;
+    private final Map<String, VSOPClass> classMap;
 
     /**
      * A map from defined variables names to their corresponding {@link Variable}
      */
-    public final Map<String, Variable<?>> vars;
+    private final Map<String, Variable<?>> vars;
 
-    public final Map<String, String> param = new HashMap<>();
+    private final Map<String, String> param = new HashMap<>();
 
-    public final Map<VSOPField, Integer> fieldOrdinal = new HashMap<>();
-    public final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
+    private final Map<VSOPField, Integer> fieldOrdinal = new HashMap<>();
+    private final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
+    private final Map<String, Integer> varOrdinal = new HashMap<>();
+
+    private int varCounter = -1;
 
     /**
      * Creates a new context given a map of classes and a map of variables
@@ -37,5 +40,29 @@ public class Context {
     public Context(Map<String, VSOPClass> classMap, Map<String, Variable<?>> vars) {
         this.classMap = Objects.requireNonNull(classMap);
         this.vars = Objects.requireNonNull(vars);
+    }
+
+    public int ordinalOf(VSOPField field) {
+        return fieldOrdinal.get(field);
+    }
+
+    public int ordinalOf(VSOPMethod method) {
+        return methodOrdinal.get(method);
+    }
+
+    public int ordinalOf(String variable) {
+        if(!varOrdinal.containsKey(variable))
+            throw new CompilationException("Attempted to fetch undeclared variable");
+        return varOrdinal.get(variable);
+    }
+
+    public int updateVariable(String variable) {
+        varCounter++;
+        varOrdinal.put(variable, varCounter);
+        return varCounter;
+    }
+
+    public int getLastValue() {
+        return varCounter;
     }
 }

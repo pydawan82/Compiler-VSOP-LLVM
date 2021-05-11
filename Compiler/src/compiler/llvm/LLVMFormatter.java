@@ -110,7 +110,7 @@ public final class LLVMFormatter {
      * @param body - a list of instructions
      * @return a {@link String} of the function definition.
      */
-    public static String defFunction(String returnType, String name, Iterable<String> args, Iterable<String> body) {
+    public static String defFunction(String returnType, String name, Iterable<String> args, String body) {
         String format = """
             define %s @%s (%s) {
                 %s
@@ -118,8 +118,7 @@ public final class LLVMFormatter {
             """;
 
         String argsStr = String.join(", ", args);
-        String bodyStr = String.join("\n", body);
         
-        return String.format(format, returnType, name, argsStr, bodyStr);
+        return String.format(format, returnType, name, argsStr, body);
     }
 }

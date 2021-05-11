@@ -4,20 +4,22 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.Objects;
 
+import compiler.ast.ASTExpr;
 import compiler.ast.ASTProgram;
 import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser;
 import compiler.util.Pair;
+import compiler.util.Triplet;
 import compiler.visitors.ClassVisitor;
 import compiler.visitors.SemanticVisitor;
 import compiler.vsop.VSOPClass;
+import compiler.vsop.VSOPMethod;
 
 /**
  * A class used for semantic checking.
  */
 public class SemanticChecker {
     
-    private PrintStream out = System.out;
     private PrintStream err = System.err;
 
     private VSOPParser parser;
@@ -29,14 +31,6 @@ public class SemanticChecker {
      */
     public SemanticChecker(VSOPParser parser) {
         this.parser = Objects.requireNonNull(parser);
-    }
-
-    /**
-     * Sets the {@link PrintStream} where the anotated AST is printed.
-     * @param out - the new output stream
-     */
-    public void setOutputStream(PrintStream out) {
-        this.out = out;
     }
 
     /**
@@ -52,7 +46,7 @@ public class SemanticChecker {
      * @return <code>true</code> if checking terminated without errors,
      * <code>false</code> otherwise.
      */
-    public Pair<Map<String, VSOPClass>, ASTProgram> check() {
+    public Triplet<Map<String, VSOPClass>, ASTProgram, Map<VSOPMethod, ASTExpr>> check() {
 		VSOPParser.ProgramContext ctx = parser.program();
 		
 		if(ctx == null) {
@@ -66,10 +60,10 @@ public class SemanticChecker {
             return null;
 
         SemanticVisitor semanticVisitor = new SemanticVisitor(map);
-        ASTProgram program = semanticVisitor.check(ctx);
-        if(program == null)
+        Pair<ASTProgram, Map<VSOPMethod, ASTExpr>> result = semanticVisitor.check(ctx);
+        if(result == null)
             return null;
 
-		return new Pair<Map<String, VSOPClass>, ASTProgram>(map, program);
+		return new Triplet<Map<String, VSOPClass>, ASTProgram, Map<VSOPMethod, ASTExpr>>(map, result.first(), result.second());
     }
 }

@@ -2,8 +2,6 @@ package compiler.ast;
 
 import java.io.PrintStream;
 
-import compiler.llvm.Context;
-
 /**
  * A base class used to represent any node of an AST.
  */
@@ -12,16 +10,6 @@ public abstract class ASTNode {
      * The {@link String} used to indent.
      */
     public static final String TAB = "  ";
-
-    /**
-     * Emit LLVM source code to the given {@link PrintStream}.
-     * The context represents the current context of the program.
-     * @param pStream - the stream where source code is printed
-     * @param ctx - the current program context
-     */
-    public void emitLLVM(PrintStream pStream, Context ctx) {
-        throw new RuntimeException("Function should have been overriden");
-    }
 
     /**
      * Prints the underlying tree to the given {@link PrintStream}.

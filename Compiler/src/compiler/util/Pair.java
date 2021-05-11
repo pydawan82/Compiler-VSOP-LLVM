@@ -3,6 +3,8 @@ package compiler.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * A tuple class that can group two objects.
@@ -33,6 +35,10 @@ public record Pair<A, B>(A first, B second) {
 			pairs.add(new Pair<A, B>(it1.next(), it2.next()));
 		
 		return pairs;
+	}
+
+	public Consumer<Pair<A,B>> consumer(BiConsumer<A,B> biConsumer) {
+		return pair -> biConsumer.accept(first(), second());
 	}
 
 	@Override

@@ -19,8 +19,14 @@ public class ASTBlock extends ASTExpr {
     }
 
     @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
+    public String emitLLVM(Context ctx) {
+        List<String> exprStr = expressions.stream()
+                .map((expr) -> expr.emitLLVM(ctx))
+                .toList();
         
+        String body = String.join("\n", exprStr);
+
+        return body;
     }
 
     @Override

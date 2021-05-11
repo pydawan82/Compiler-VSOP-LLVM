@@ -3,8 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import compiler.llvm.Context;
-
 public class ASTProgram extends ASTNode {
 
     public List<ASTClass> classes;
@@ -14,12 +12,6 @@ public class ASTProgram extends ASTNode {
         )
     {
         this.classes = classes;
-    }
-
-    @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override

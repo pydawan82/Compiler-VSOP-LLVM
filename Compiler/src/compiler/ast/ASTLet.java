@@ -26,8 +26,12 @@ public class ASTLet extends ASTExpr {
     }
 
     @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
+    public String emitLLVM(Context ctx) {
+        String format = "";
+
+        ctx.updateVariable(id);
         
+        return String.format(format);
     }
 
     @Override

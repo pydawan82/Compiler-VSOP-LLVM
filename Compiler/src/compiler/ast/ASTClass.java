@@ -3,7 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.List;
 
-import compiler.llvm.Context;
 import compiler.vsop.VSOPClass;
 
 public class ASTClass extends ASTNode {
@@ -22,11 +21,6 @@ public class ASTClass extends ASTNode {
         this.vsopClass = vsopClass;
         this.fields = fields;
         this.methods = methods;
-    }
-
-    @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
-        
     }
 
     @Override

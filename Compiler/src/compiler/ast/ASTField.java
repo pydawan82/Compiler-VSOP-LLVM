@@ -3,7 +3,6 @@ package compiler.ast;
 import java.io.PrintStream;
 import java.util.Optional;
 
-import compiler.llvm.Context;
 import compiler.vsop.VSOPField;
 
 public class ASTField extends ASTNode{
@@ -17,11 +16,6 @@ public class ASTField extends ASTNode{
     {
         this.vsopField = vsopField;
         this.expr = expr;
-    }
-
-    @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
-        
     }
 
     @Override

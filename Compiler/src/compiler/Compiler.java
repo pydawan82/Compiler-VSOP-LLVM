@@ -2,18 +2,14 @@ package compiler;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Map;
 import java.util.Objects;
 
-import compiler.ast.ASTProgram;
 import compiler.error.LexicalError;
 import compiler.error.SemanticError;
 import compiler.error.SyntaxError;
 import compiler.llvm.Generator;
 import compiler.parsing.VSOPLexer;
 import compiler.parsing.VSOPParser;
-import compiler.util.Pair;
-import compiler.vsop.VSOPClass;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -91,7 +87,7 @@ public class Compiler {
 	 * @return
 	 */
 	public boolean check() {
-		Pair<Map<String, VSOPClass>, ASTProgram> result = new SemanticChecker(parser()).check();
+		var result = new SemanticChecker(parser()).check();
 
 		if(result == null)
 			return false;
@@ -103,14 +99,14 @@ public class Compiler {
 
 	public boolean compile() {
 		SemanticChecker checker = new SemanticChecker(parser());
-		Pair<Map<String, VSOPClass>, ASTProgram> result = checker.check();
+		var result = checker.check();
 
 		if(result == null) {
 			System.err.println("Failed semantic checking, aborting");
 			return false;
 		}
 
-		Generator generator = new Generator(result.second(), result.first(), out);
+		Generator generator = new Generator(result.second(), result.first(), result.third(), out);
 		generator.emitLLVM();
 
 		return true;

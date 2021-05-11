@@ -22,4 +22,8 @@ public class VSOPMethod {
 		this.col = col;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("VSOPMethod(%s)", id);
+	}
 }

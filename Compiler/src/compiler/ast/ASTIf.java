@@ -27,8 +27,10 @@ public class ASTIf extends ASTExpr {
     }
 
     @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
+    public String emitLLVM(Context ctx) {
+        String format = "";
         
+        return String.format(format);
     }
 
     @Override

@@ -25,9 +25,10 @@ public class ASTCall extends ASTExpr {
     }
 
     @Override
-    public void emitLLVM(PrintStream pStream, Context ctx) {
-        // TODO Auto-generated method stub
+    public String emitLLVM(Context ctx) {
+        String format = "";
         
+        return String.format(format);
     }
 
     @Override
