@@ -51,7 +51,7 @@ public class ASTMethod extends ASTNode {
         pStream.print(']');
 
         pStream.print(", ");
-        pStream.print(vsopMethod.ret.id);
+        pStream.print(vsopMethod.returnType.id);
 
         pStream.print(", ");
         block.print(pStream, indent+1);

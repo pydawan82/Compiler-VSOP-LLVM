@@ -5,7 +5,10 @@ import java.io.PrintStream;
 import java.util.Optional;
 
 import compiler.llvm.Context;
+import compiler.util.PrintUtil;
 import compiler.vsop.VSOPType;
+
+import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTIf extends ASTExpr {
 
@@ -28,9 +31,24 @@ public class ASTIf extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        String condStr = condExpr.emitLLVM(ctx);
+        String condVar = var(ctx.getLastValue());
         
-        return String.format(format);
+        String branch = "";
+
+        String then = thenExpr.emitLLVM(ctx);
+        String thenVar = var(ctx.getLastValue());
+
+        if(elseExpr.isPresent()) {
+            int elseLabel = ctx.unnamed(); 
+            String elze = elseExpr.get().emitLLVM(ctx);
+            String elzeVar = var(ctx.getLastValue());
+        }
+
+        int label = ctx.unnamed();
+
+        
+        return String.join(System.lineSeparator(), condStr);
     }
 
     @Override

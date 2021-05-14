@@ -1,8 +1,12 @@
 package compiler.ast;
 
+import static compiler.llvm.LLVMFormatter.*;
+
 import java.io.PrintStream;
 
 import compiler.llvm.Context;
+import compiler.llvm.Generator;
+import compiler.llvm.LLVMConstants;
 import compiler.vsop.VSOPBinOp;
 
 public class ASTBinop extends ASTExpr {
@@ -26,9 +30,17 @@ public class ASTBinop extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+
+        String llvmLeft = leftExpr.emitLLVM(ctx);
+        String left = var(ctx.getLastValue());
+
+        String llvmRight = leftExpr.emitLLVM(ctx);
+        String right = var(ctx.getLastValue());
         
-        return String.format(format);
+        String op = op(LLVMConstants.binOp(operator), Generator.toLLVMType(operator.retType), var(left), var(right));
+        String operation = assign(var(ctx.unnamed()), op);
+
+        return String.join(System.lineSeparator(), llvmLeft, llvmRight, operation);
     }
 
     @Override

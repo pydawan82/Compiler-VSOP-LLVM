@@ -3,6 +3,9 @@ package compiler.vsop;
 import java.util.List;
 import java.util.Map;
 
+
+//TODO Comment class
+
 public class VSOPConstants {
 	public static final VSOPType INT32 = new VSOPType("int32", 0);
 	public static final VSOPType STRING = new VSOPType("string", "");
@@ -25,9 +28,17 @@ public class VSOPConstants {
 	private static final VSOPMethod inputInt32 = new VSOPMethod("inputInt32", List.of(), INT32);
 
 	static {
-		OBJECT.functions.putAll(Map.of(print.id, print, printBool.id, printBool, printInt32.id, printInt32,
-
-				inputLine.id, inputLine, inputBool.id, inputBool, inputInt32.id, inputInt32));
+		Map<String, VSOPMethod> methods = Map.of(
+				print.id, print,
+				printBool.id,printBool,
+				printInt32.id, printInt32,
+				inputLine.id, inputLine,
+				inputBool.id, inputBool,
+				inputInt32.id, inputInt32);
+		
+		methods.values().forEach(m -> m.setParent(OBJECT));
+		
+		OBJECT.methods.putAll(methods);
 	}
 
 	public static final List<String> reservedNames = List.of("and", "extends", "isnull", "false", "let", "then",

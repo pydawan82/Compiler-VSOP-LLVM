@@ -1,5 +1,7 @@
 package compiler.vsop;
 
+//TODO Comment class
+
 public class VSOPType {
 	public final String id;
 	public final Object defaultValue;

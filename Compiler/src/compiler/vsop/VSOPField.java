@@ -1,5 +1,8 @@
 package compiler.vsop;
 
+
+//TODO Comment class
+
 public class VSOPField {
 
 	public final String id;

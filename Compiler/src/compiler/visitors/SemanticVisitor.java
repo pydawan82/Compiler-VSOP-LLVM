@@ -162,7 +162,7 @@ public class SemanticVisitor {
 		List<ASTFormal> formals = new ArrayList<>(ctx.formals().formal().size());
 		ctx.formals().formal().stream().map(this::visitFormal).forEach(formals::add);
 
-		VSOPMethod method = currentClass.functions.get(id);
+		VSOPMethod method = currentClass.methods.get(id);
 		for (var field : method.args)
 			varStack.push(field.id, field.type);
 
@@ -176,9 +176,9 @@ public class SemanticVisitor {
 		for (var field : method.args)
 			varStack.pop(field.id);
 
-		if (!block.type.canCast(method.ret))
+		if (!block.type.canCast(method.returnType))
 			errorQueue.add(new SemanticError(ctx.block(),
-					String.format("Method should return %s but got %s instead", method.ret.id, block.type.id)));
+					String.format("Method should return %s but got %s instead", method.returnType.id, block.type.id)));
 
 		return new ASTMethod(method, formals, block);
 	}
@@ -348,7 +348,7 @@ public class SemanticVisitor {
 	private ASTCall visitSelfcall(SelfcallContext ctx) {
 		String id = ctx.id.getText();
 
-		VSOPMethod method = currentClass.functions.get(id);
+		VSOPMethod method = currentClass.methods.get(id);
 		if (inFieldInit) {
 			errorQueue.add(new SemanticError(ctx, "illegal call to self in field initializer"));
 		} else if (method == null) {
@@ -371,7 +371,7 @@ public class SemanticVisitor {
 		VSOPMethod method = null;
 		if (object.type instanceof VSOPClass) {
 			VSOPClass exprClass = (VSOPClass) object.type;
-			method = exprClass.functions.get(id);
+			method = exprClass.methods.get(id);
 
 			if (method == null) {
 				errorQueue.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),

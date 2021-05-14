@@ -22,6 +22,9 @@ import static compiler.llvm.LLVMFormatter.*;
  */
 public class Generator {
 
+    /**
+     * TODO Probably to be removed
+     */
     private final ASTProgram ast;
     private final Map<String, VSOPClass> classMap;
     private final Map<VSOPMethod, ASTExpr> methods;
@@ -70,16 +73,16 @@ public class Generator {
 
         List<String> types = clazz.fields.values().stream()
                 .map(f -> f.type)
-                .map(this::toLLVMType)
+                .map(Generator::toLLVMType)
                 .collect(Collectors.toList());
 
-        types.add(0, pointerOf(vTableName));
+        types.add(0, pointerOf(type(vTableName)));
 
         String typeDef = defStruct(classType, types);
         out.println(typeDef);
 
-        List<String> args = clazz.functions.values().stream()
-                .map(m -> toLLVMType(m, clazz))
+        List<String> args = clazz.methods.values().stream()
+                .map(this::toLLVMType)
                 .toList();
 
         String vTableDef = defStruct(vTableName, args);
@@ -87,9 +90,9 @@ public class Generator {
         out.println();
     }
 
-    private String toLLVMType(VSOPType type) {
+    public static String toLLVMType(VSOPType type) {
         if(type instanceof VSOPClass clazz)
-            return pointerOf(classId(clazz.id));
+            return pointerOf(type(classId(clazz.id)));
         
         if(type == VSOPConstants.BOOL)
             return BOOL;
@@ -103,20 +106,20 @@ public class Generator {
         throw new CompilationException("Unhandled type case");
     }
 
-    private String toLLVMType(VSOPMethod method, VSOPClass parent) {
-        String returnType = toLLVMType(method.ret);
-        List<String> args = argsToLLVMType(method, parent);
+    private String toLLVMType(VSOPMethod method) {
+        String returnType = toLLVMType(method.returnType);
+        List<String> args = argsToLLVMType(method);
 
         return function(returnType, args);
     }
 
-    private List<String> argsToLLVMType(VSOPMethod method, VSOPClass parent) {
+    private List<String> argsToLLVMType(VSOPMethod method) {
         List<String> args = method.args.stream()
                 .map(f -> f.type)
-                .map(this::toLLVMType)
+                .map(Generator::toLLVMType)
                 .collect(Collectors.toList());
                 
-        args.add(0, toLLVMType(parent));
+        args.add(0, toLLVMType(method.getParent()));
 
         return args;
     }
@@ -129,37 +132,44 @@ public class Generator {
 
     private void declareVTable(VSOPClass clazz) {
         
-        List<String> functions = clazz.functions.values().stream()
-                .map(m -> toLLVMType(m, clazz)+" "+ functionId(clazz.id, m.id))
+        List<String> functions = clazz.methods.values().stream()
+                .map(m -> toLLVMType(m)+" "+ global(functionId(m.getParent().id, m.id)))
                 .toList();
         
         String table = arrayOf(functions);
-        String def = defConstant(var(vTableName(clazz.id)), vTableType(clazz.id), table);
+        String def = defConstant(global(vTableName(clazz.id)), type(vTableType(clazz.id)), table);
 
         out.println(def);
     }
 
     private void declareFunctions(Context ctx) {
-        class_loop:
+    class_loop:
         for(VSOPClass parent: classMap.values()) {
-            for(VSOPMethod method: parent.functions.values()) {
+            for(VSOPMethod method: parent.methods.values()) {
 
-                if(VSOPConstants.OBJECT.functions.containsValue(method))
+                if(method.getParent() == VSOPConstants.OBJECT)
                     continue class_loop;
 
                 ASTExpr body = methods.get(method);
-                declareFunction(ctx, method, parent, body);
+                declareFunction(ctx, method, body);
             }
         }
     }
     
-    private void declareFunction(Context ctx, VSOPMethod method, VSOPClass parent, ASTExpr body) {
-        String returnType = toLLVMType(method.ret);
-        String id = functionId(parent.id, method.id);
-        List<String> args = argsToLLVMType(method, parent);
-        String bodyStr = body.emitLLVM(ctx);
+    private void declareFunction(Context ctx, VSOPMethod method, ASTExpr body) {
+        String returnType = toLLVMType(method.returnType);
+        String id = functionId(method.getParent().id, method.id);
+        List<String> args = argsToLLVMType(method);
+        String bodyStr = indentBlock(body.emitLLVM(ctx));
 
         String def = defFunction(returnType, id, args, bodyStr);
         out.println(def);
+    }
+
+    private String labelPattern = "[0-9]+:\\s*";
+    private String indentBlock(String block) {
+        return block.lines()
+                .map(l -> l.matches(labelPattern) ? l : '\t'+l)
+                .collect(Collectors.joining(System.lineSeparator()));
     }
 }

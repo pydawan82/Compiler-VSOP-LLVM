@@ -1,5 +1,7 @@
 package compiler.vsop;
 
+//TODO Comment class
+
 public class VSOPBinOp {
 	public final String id;
 	public final VSOPType opType;

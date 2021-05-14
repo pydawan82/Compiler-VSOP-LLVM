@@ -72,14 +72,14 @@ public class ClassVisitor {
 			return;
 		}
 
-		VSOPMethod m = main.value().functions.get(MAIN_METHOD);
+		VSOPMethod m = main.value().methods.get(MAIN_METHOD);
 		if (m == null) {
 			errorQueue.add(new SemanticError(String.format(
 					"Could not find %s method in class %s", MAIN_METHOD, MAIN_CLASS)));
 			return;
 		}
 
-		if (!m.args.equals(MAIN_ARGS) || m.ret != MAIN_RET) {
+		if (!m.args.equals(MAIN_ARGS) || m.returnType != MAIN_RET) {
 			errorQueue.add(new SemanticError(String.format(
 					"%s method has wrong signature, expected no args and return type %s", MAIN_METHOD, MAIN_RET.id)));
 			return;
@@ -107,20 +107,18 @@ public class ClassVisitor {
 		return hasError ? map : null;
 	}
 
-	private Void visitProgram(VSOPParser.ProgramContext ctx) {
+	private void visitProgram(VSOPParser.ProgramContext ctx) {
 		ctx.clazz().forEach(this::visitClazz);
-
-		return null;
 	}
 
 	private VSOPClass visitClazz(VSOPParser.ClazzContext ctx) {
 
 		String id = ctx.id.getText();
-		String superId = ctx.idext != null ? ctx.idext.getText() : OBJECT.id;
+		String superId = (ctx.idext != null) ? ctx.idext.getText() : OBJECT.id;
 
-		Pair<Map<String, VSOPField>, Map<String, VSOPMethod>> pair = visitClassBody(ctx.classBody());
+		var result = visitClassBody(ctx.classBody());
 
-		VSOPClass clazz = new VSOPClass(id, null, pair.first(), pair.second(), ctx);
+		VSOPClass clazz = new VSOPClass(id, null, result.first(), result.second(), ctx);
 		Node<VSOPClass> node = new Node<>(clazz);
 		Node<VSOPClass> old = classMap.putIfAbsent(id, node);
 
@@ -187,7 +185,7 @@ public class ClassVisitor {
 
 		taskQueue.add(() -> {
 			method.args = getFormals(ctx.formals());
-			method.ret = getType(ctx.type());
+			method.returnType = getType(ctx.type());
 		});
 
 		return method;

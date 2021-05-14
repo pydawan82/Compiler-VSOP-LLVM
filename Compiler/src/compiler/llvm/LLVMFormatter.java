@@ -45,9 +45,27 @@ public final class LLVMFormatter {
     }
 
     public static String var(String id) {
-        String format = "@%s";
+        String format = "%%%s";
 
         return String.format(format, id);
+    }
+
+    public static String var(int ord) {
+        String format = "%%%d";
+
+        return String.format(format, ord);
+    }
+
+    public static String global(String var) {
+        String format = "@%s";
+
+        return String.format(format, var);
+    }
+
+    public static String type(String type) {
+        String format = "%%%s";
+
+        return String.format(format, type);
     }
 
     /**
@@ -113,12 +131,36 @@ public final class LLVMFormatter {
     public static String defFunction(String returnType, String name, Iterable<String> args, String body) {
         String format = """
             define %s @%s (%s) {
-                %s
+            %s
             }
             """;
 
         String argsStr = String.join(", ", args);
         
         return String.format(format, returnType, name, argsStr, body);
+    }
+
+    public static String assign(String id, String value) {
+        String format = "%s = %s";
+
+        return String.format(format, id, value);
+    }
+
+    public static String op(String op, String type, String left, String right) {
+        String format = "%s %s %s %s";
+        return String.format(format, op, type, left, right);
+    }
+
+    private static String callFormat = "call %s %s(%s)";
+    public static String call(String type, String function, String ... args) {
+        String argsStr = String.join(", ", args);
+
+        return String.format(callFormat, argsStr);
+    }
+
+    public static String call(String type, String function, Iterable<String> args) {
+        String argsStr = String.join(", ", args);
+
+        return String.format(callFormat, argsStr);
     }
 }

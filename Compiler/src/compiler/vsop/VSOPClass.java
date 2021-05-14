@@ -1,7 +1,5 @@
 package compiler.vsop;
 
-import java.io.PrintStream;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,24 +10,28 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.error.SemanticError;
 
+//TODO Comment class
+
 public class VSOPClass extends VSOPType {
 	public VSOPClass superClass;
 	public final Map<String, VSOPField> fields = new HashMap<>();
-	public final Map<String, VSOPMethod> functions = new HashMap<>();
+	public final Map<String, VSOPMethod> methods = new HashMap<>();
 
 	public final int ln, col;
 
 	public VSOPClass(String name, VSOPClass superClass, Map<String, VSOPField> fields,
-			Map<String, VSOPMethod> functions, int ln, int col) {
+			Map<String, VSOPMethod> methods, int ln, int col) {
 		super(name, null);
-
+		
 		this.superClass = superClass;
 
 		this.fields.putAll(fields);
-		this.functions.putAll(functions);
+		this.methods.putAll(methods);
 
 		this.ln = ln;
 		this.col = col;
+
+		methods.values().forEach(m -> m.setParent(this));
 	}
 
 	public VSOPClass(String name, VSOPClass superClass, Map<String, VSOPField> fields,
@@ -74,10 +76,10 @@ public class VSOPClass extends VSOPType {
 		if (superClass == null)
 			return errors;
 
-		for (String key : superClass.functions.keySet()) {
-			VSOPMethod m = superClass.functions.get(key);
-			VSOPMethod old = functions.putIfAbsent(key, m);
-			if (old != null && (!m.args.equals(old.args) || m.ret != old.ret))
+		for (String key : superClass.methods.keySet()) {
+			VSOPMethod m = superClass.methods.get(key);
+			VSOPMethod old = methods.putIfAbsent(key, m);
+			if (old != null && (!m.args.equals(old.args) || m.returnType != old.returnType))
 				errors.add(new SemanticError(m.ln, m.col,
 						String.format("method %s is redefined in class %s with wrong signature", m.id, this.id)));
 

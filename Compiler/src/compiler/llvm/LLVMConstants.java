@@ -1,5 +1,11 @@
 package compiler.llvm;
 
+import java.util.Map;
+
+import compiler.vsop.VSOPBinOp;
+
+import static compiler.vsop.VSOPConstants.*;
+
 public final class LLVMConstants {
 
     private LLVMConstants() {};
@@ -22,14 +28,14 @@ public final class LLVMConstants {
     public static String stringLiteral(String value) {
         String format =  "c\"%s\"";
 
-        return String.format(format, value);
+        return format.formatted(value);
     }
 
     public static String arrayOf(Iterable<String> values) {
         String format = "{%s}";
         String elements = String.join(", ", values);
 
-        return String.format(format, elements);
+        return format.formatted(elements);
     }
 
     /*
@@ -50,9 +56,9 @@ public final class LLVMConstants {
         if(size <= 0)
             throw new IllegalArgumentException("Size must be a non-nul positive integer");
 
-        String format = "%di";
+        String format = "i%d";
         
-        return String.format(format, size);
+        return format.formatted(size);
     }
 
     public static String string(int length) {
@@ -65,13 +71,13 @@ public final class LLVMConstants {
         
         String format = "[%s x %s]";
 
-        return String.format(format, type, length); 
+        return format.formatted(type, length); 
     }
 
     public static String pointerOf(String type) {
         String format = "%s*";
 
-        return String.format(format, type);
+        return format.formatted(type);
     }
 
     public static String function(String returnType, String ... args) {
@@ -79,7 +85,7 @@ public final class LLVMConstants {
 
         String argsStr = String.join(", ", args);
 
-        return String.format(format, returnType, argsStr);
+        return format.formatted(returnType, argsStr);
     }
 
     public static String function(String returnType, Iterable<String> args) {
@@ -87,7 +93,31 @@ public final class LLVMConstants {
 
         String argsStr = String.join(", ", args);
 
-        return String.format(format, returnType, argsStr);
+        return format.formatted(returnType, argsStr);
     }
 
+    /*
+     * Operators
+     */
+
+    private static Map<VSOPBinOp, String> binops = Map.of(
+            AND, "and",
+            EQ, "icmp eq",
+            LOW, "icmp slt",
+            LE, "icmp sle",
+            PLUS, "add",
+            MINUS, "sub",
+            TIMES, "mul",
+            DIV, "sdiv",
+            POW, "pow"
+        );
+    
+    public static String binOp(VSOPBinOp binOp) {
+        String result = binops.get(binOp);
+
+        if(result == null)
+            throw new CompilationException("Unhandled operator");
+        
+        return result;
+    }
 }

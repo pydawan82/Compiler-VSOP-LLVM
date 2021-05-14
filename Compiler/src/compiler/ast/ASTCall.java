@@ -2,9 +2,14 @@ package compiler.ast;
 
 import java.io.PrintStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import compiler.llvm.Context;
+import compiler.util.Pair;
+import compiler.vsop.VSOPConstants;
 import compiler.vsop.VSOPMethod;
+
+import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTCall extends ASTExpr {
     
@@ -18,7 +23,7 @@ public class ASTCall extends ASTExpr {
             List<ASTExpr> args
         )
     {
-        super(vsopMethod.ret);
+        super(vsopMethod.returnType);
         this.vsopMethod = vsopMethod;
         this.object = object;
         this.args = args;
@@ -26,9 +31,27 @@ public class ASTCall extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        List<Pair<String,String>> argsStr = args.stream()
+                .map(arg -> argToLLVM(ctx))
+                .toList();
         
-        return String.format(format);
+        String pre = argsStr.stream()
+                .map(p -> p.first())
+                .collect(Collectors.joining(System.lineSeparator()));
+
+        String call = "";//TODO  Use argscall();
+        String line = (vsopMethod.returnType == VSOPConstants.UNIT)
+            ? call
+            : assign(var(ctx.unnamed()), call);
+
+        String operation = line;
+
+        return String.join(System.lineSeparator(), pre, operation);
+    }
+
+    private Pair<String, String> argToLLVM(Context ctx) {
+        //TODO Ouais
+        return new Pair<String, String>("", "");
     }
 
     @Override
@@ -57,7 +80,7 @@ public class ASTCall extends ASTExpr {
 		}
 		pStream.print("]");
 
-		pStream.printf("):%s", vsopMethod.ret.id);
+		pStream.printf("):%s", vsopMethod.returnType.id);
     }
     
 }

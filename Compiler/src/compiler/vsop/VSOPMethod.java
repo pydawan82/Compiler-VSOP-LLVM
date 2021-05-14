@@ -2,11 +2,15 @@ package compiler.vsop;
 
 import java.util.List;
 
+//TODO Comment class
+
 public class VSOPMethod {
 
 	public final String id;
 	public List<VSOPField> args;
-	public VSOPType ret;
+	public VSOPType returnType;
+
+	private VSOPClass parent;
 
 	public final int ln, col;
 
@@ -17,9 +21,17 @@ public class VSOPMethod {
 	public VSOPMethod(String name, List<VSOPField> args, VSOPType ret, int ln, int col) {
 		this.id = name;
 		this.args = args;
-		this.ret = ret;
+		this.returnType = ret;
 		this.ln = ln;
 		this.col = col;
+	}
+
+	public VSOPClass getParent() {
+		return parent;
+	}
+
+	void setParent(VSOPClass parent) {
+		this.parent = parent;
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.Optional;
 
 import compiler.llvm.Context;
+import compiler.llvm.LLVMFormatter;
 import compiler.vsop.VSOPType;
 
 public class ASTLet extends ASTExpr {
@@ -27,11 +28,24 @@ public class ASTLet extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        String assign = assign(ctx);
+        String expr = in.emitLLVM(ctx);
 
-        ctx.updateVariable(id);
-        
-        return String.format(format);
+        return String.join(System.lineSeparator(), assign, expr);
+    }
+
+    private String assign(Context ctx) {
+        String llvmId = LLVMFormatter.var(ctx.updateVariable(id));
+
+        String llvmValue;
+        if(value.isPresent()) {
+            value.get().emitLLVM(ctx);
+            llvmValue = LLVMFormatter.var(ctx.getLastValue());
+        } else {
+            llvmValue = "0";
+        }
+
+        return LLVMFormatter.assign(llvmId, llvmValue);
     }
 
     @Override
