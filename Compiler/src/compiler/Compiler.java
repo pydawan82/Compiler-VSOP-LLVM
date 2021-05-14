@@ -114,7 +114,7 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 
-		args = "-o Compiler/vsop-examples/list.vsop".split(" ");
+		args = "-o Compiler/vsop-examples/main.vsop".split(" ");
 
 		if (args.length != 2) {
 			System.err.println("Usage: vsopc [-l|-p|-c] *input_file*");

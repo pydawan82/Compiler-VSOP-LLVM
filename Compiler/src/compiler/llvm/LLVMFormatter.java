@@ -1,6 +1,7 @@
 package compiler.llvm;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import compiler.util.Pair;
 
@@ -54,6 +55,18 @@ public final class LLVMFormatter {
         String format = "%%%d";
 
         return String.format(format, ord);
+    }
+
+    public static String label(String ord) {
+        String format = "%s:";
+
+        return format.formatted(ord);
+    }
+
+    public static String label(int ord) {
+        String format = "%d:";
+
+        return format.formatted(ord);
     }
 
     public static String global(String var) {
@@ -139,6 +152,10 @@ public final class LLVMFormatter {
         
         return String.format(format, returnType, name, argsStr, body);
     }
+    
+    public static String assign(int ord, String value) {
+        return assign(var(ord), value);
+    }
 
     public static String assign(String id, String value) {
         String format = "%s = %s";
@@ -147,7 +164,7 @@ public final class LLVMFormatter {
     }
 
     public static String op(String op, String type, String left, String right) {
-        String format = "%s %s %s %s";
+        String format = "%s %s %s, %s";
         return String.format(format, op, type, left, right);
     }
 
@@ -155,12 +172,53 @@ public final class LLVMFormatter {
     public static String call(String type, String function, String ... args) {
         String argsStr = String.join(", ", args);
 
-        return String.format(callFormat, argsStr);
+        return String.format(callFormat, type, function, argsStr);
     }
 
     public static String call(String type, String function, Iterable<String> args) {
         String argsStr = String.join(", ", args);
 
-        return String.format(callFormat, argsStr);
+        return String.format(callFormat, type, function, argsStr);
+    }
+
+    public static String branch(String cond, String labelTrue, String labelFalse) {
+        String format = "br i1 %s, label %s, label %s";
+
+        return format.formatted(cond, labelTrue, labelFalse);
+    }
+
+    public static String branch(String label) {
+        String format = "br label %s";
+
+        return format.formatted(label);
+    }
+
+    public static String select(String cond, String then, String elze) {
+        String format = "select i1 %s, %s, %s";
+
+        return format.formatted(cond, then, elze);
+    }
+
+    public static String phi(String type, List<Pair<String, String>> pairs) {
+        String format = "phi %s %s";
+        String formatPair = "[%s, %s]";
+
+        String br = pairs.stream()
+                .map(p -> formatPair.formatted(p.first(), p.second()))
+                .collect(Collectors.joining(", "));
+        
+        return format.formatted(type, br);
+    }
+
+    public static String icmp(String cond, String type, String op1, String op2) {
+        String format = "icmp %s %s %s, %s";
+
+        return format.formatted(cond, type, op1, op2);
+    }
+
+    public static String ret(String value) {
+        String format = "ret %s";
+
+        return format.formatted(value);
     }
 }

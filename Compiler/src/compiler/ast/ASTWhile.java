@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import compiler.llvm.Context;
 
 import static compiler.vsop.VSOPConstants.UNIT;
+import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTWhile extends ASTExpr {
 
@@ -23,9 +24,31 @@ public class ASTWhile extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        int loopOrd = ctx.unnamed();
+        String labelLoop = label(loopOrd);
+
+        String condInstr = cond.emitLLVM(ctx);
+        String condVar = ctx.getLastValue();
+        int startOrd = ctx.unnamed();
+        int endOrd = ctx.unnamed();
+
+        String branch = branch(condVar, var(startOrd), var(endOrd));
+
+        String labelStart = label(startOrd);
+        String loopInstr = loop.emitLLVM(ctx);
+        String jump = branch(var(loopOrd));
+
+        String labelEnd = label(endOrd);
         
-        return String.format(format);
+        return String.join(System.lineSeparator(), 
+                labelLoop,
+                condInstr,
+                branch,
+                labelStart,
+                loopInstr,
+                jump,
+                labelEnd
+            );
     }
 
     @Override

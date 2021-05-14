@@ -7,6 +7,8 @@ import compiler.llvm.Context;
 import compiler.llvm.LLVMFormatter;
 import compiler.vsop.VSOPType;
 
+import static compiler.llvm.LLVMFormatter.*;
+
 public class ASTLet extends ASTExpr {
 
     String id;
@@ -35,12 +37,12 @@ public class ASTLet extends ASTExpr {
     }
 
     private String assign(Context ctx) {
-        String llvmId = LLVMFormatter.var(ctx.updateVariable(id));
+        String llvmId = var(ctx.updateVariable(id));
 
         String llvmValue;
         if(value.isPresent()) {
             value.get().emitLLVM(ctx);
-            llvmValue = LLVMFormatter.var(ctx.getLastValue());
+            llvmValue = ctx.getLastValue();
         } else {
             llvmValue = "0";
         }

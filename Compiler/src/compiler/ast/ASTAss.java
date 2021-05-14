@@ -5,6 +5,8 @@ import java.io.PrintStream;
 import compiler.llvm.Context;
 import compiler.vsop.VSOPType;
 
+import static compiler.llvm.LLVMFormatter.assign;
+
 public class ASTAss extends ASTExpr {
     String id;
     ASTExpr value;
@@ -21,9 +23,12 @@ public class ASTAss extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        String valueInstr = value.emitLLVM(ctx);
+        String val = ctx.getLastValue();
         
-        return String.format(format);
+        String ass = assign(ctx.unnamed(), val);
+        
+        return String.join(System.lineSeparator(), valueInstr, ass);
     }
 
     @Override

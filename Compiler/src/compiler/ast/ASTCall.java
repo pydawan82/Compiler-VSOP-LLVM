@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import compiler.llvm.Context;
+import compiler.llvm.Generator;
 import compiler.util.Pair;
 import compiler.vsop.VSOPConstants;
 import compiler.vsop.VSOPMethod;
@@ -31,27 +32,35 @@ public class ASTCall extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        List<Pair<String,String>> argsStr = args.stream()
-                .map(arg -> argToLLVM(ctx))
+        String objInstr = object.emitLLVM(ctx);
+
+        List<Pair<String,String>> argsPair = args.stream()
+                .map(arg -> argToLLVM(ctx, arg))
                 .toList();
         
-        String pre = argsStr.stream()
+        String pre = argsPair.stream()
                 .map(p -> p.first())
                 .collect(Collectors.joining(System.lineSeparator()));
 
-        String call = "";//TODO  Use argscall();
+        List<String> argsList = argsPair.stream()
+                .map(arg -> arg.second())
+                .toList();
+
+        String ret = Generator.toLLVMType(vsopMethod.returnType);
+        String call = call(ret, global(functionId(vsopMethod.getParent().id, vsopMethod.id)), argsList);
         String line = (vsopMethod.returnType == VSOPConstants.UNIT)
             ? call
             : assign(var(ctx.unnamed()), call);
 
         String operation = line;
 
-        return String.join(System.lineSeparator(), pre, operation);
+        return String.join(System.lineSeparator(), objInstr, pre, operation);
     }
 
-    private Pair<String, String> argToLLVM(Context ctx) {
-        //TODO Ouais
-        return new Pair<String, String>("", "");
+    private Pair<String, String> argToLLVM(Context ctx, ASTExpr arg) {
+        String instr = arg.emitLLVM(ctx);
+        String var = Generator.toLLVMType(arg.type) + " " + ctx.getLastValue();
+        return new Pair<String, String>(instr, var);
     }
 
     @Override

@@ -26,7 +26,7 @@ public final class LLVMConstants {
      * @return a {@link String} representation of a string constant definition in LLVM
      */
     public static String stringLiteral(String value) {
-        String format =  "c\"%s\"";
+        String format =  "c%s";
 
         return format.formatted(value);
     }

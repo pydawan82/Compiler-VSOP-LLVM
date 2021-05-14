@@ -36,8 +36,8 @@ public class Context {
     private final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
     private final Map<String, Integer> varOrdinal = new HashMap<>();
 
-    private int varCounter = -1;
-    private int lastValue = varCounter;
+    private int varCounter = 0;
+    private String lastValue = "bad";
 
     /**
      * Creates a new context given a map of classes and a map of variables
@@ -57,33 +57,41 @@ public class Context {
         return methodOrdinal.get(method);
     }
 
+    public void push(String variable) {
+        setLastValue(ordinalOf(variable));
+    }
+
     public int ordinalOf(String variable) {
         Integer ordinal = varOrdinal.get(variable);
         
         if(ordinal == null)
-            throw new CompilationException("Attempted to fetch undeclared variable");
-        
-            return ordinal;
+            //throw new CompilationException("Attempted to fetch undeclared variable");
+            return -1;
+
+        return ordinal;
     }
 
     public int updateVariable(String variable) {
         varCounter++;
-        lastValue = varCounter;
         varOrdinal.put(variable, varCounter);
         return varCounter;
     }
 
     public int unnamed() {
         varCounter++;
-        lastValue = varCounter;
+        setLastValue(varCounter);
         return varCounter;
     }
 
-    public int getLastValue() {
-        return varCounter;
+    public String getLastValue() {
+        return lastValue;
     }
 
-    public void setLastValue(int ord) {
-        lastValue = ord;
+    public void setLastValue(int value) {
+        lastValue = LLVMFormatter.var(value);
+    }
+
+    public void setLastValue(String value) {
+        lastValue = value;
     }
 }

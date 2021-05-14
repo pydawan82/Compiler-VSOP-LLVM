@@ -1,11 +1,15 @@
 package compiler.ast;
 
 import java.io.PrintStream;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import compiler.llvm.Context;
+import compiler.llvm.Generator;
+import compiler.util.Pair;
 import compiler.util.PrintUtil;
+import compiler.vsop.VSOPConstants;
 import compiler.vsop.VSOPType;
 
 import static compiler.llvm.LLVMFormatter.*;
@@ -31,24 +35,51 @@ public class ASTIf extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
+        List<String> list = new ArrayList<>();
+
         String condStr = condExpr.emitLLVM(ctx);
+        list.add(condStr);
         String condVar = var(ctx.getLastValue());
-        
-        String branch = "";
+
+        int labelTrue = ctx.unnamed();
+        int labelFalse = ctx.unnamed();
+
+        String branch = branch(condVar, var(labelTrue), var(labelFalse));
+        list.add(branch);
+        list.add(label(labelTrue));
+
+        int labelEnd = ctx.unnamed();
 
         String then = thenExpr.emitLLVM(ctx);
-        String thenVar = var(ctx.getLastValue());
+        list.add(then);
+        String thenVar = ctx.getLastValue();
 
+        String elzeVar = "";
         if(elseExpr.isPresent()) {
-            int elseLabel = ctx.unnamed(); 
+            String jump = branch(var(labelEnd));
+            list.add(jump);
+
+            list.add(label(labelFalse));
             String elze = elseExpr.get().emitLLVM(ctx);
-            String elzeVar = var(ctx.getLastValue());
+            list.add(elze);
+            elzeVar = ctx.getLastValue();
         }
 
-        int label = ctx.unnamed();
+        list.add((elseExpr.isPresent()) ? label(labelEnd) : label(labelFalse));
 
+        if(type != VSOPConstants.UNIT) {
+            String phi = assign(var(ctx.unnamed()),
+                phi(Generator.toLLVMType(type), List.of(
+                        new Pair<String, String>(var(labelTrue), thenVar),
+                        new Pair<String, String>(var(labelFalse), elzeVar)
+                    )
+                )
+            );
+
+            list.add(phi);
+        }
         
-        return String.join(System.lineSeparator(), condStr);
+        return String.join(System.lineSeparator(), list);
     }
 
     @Override

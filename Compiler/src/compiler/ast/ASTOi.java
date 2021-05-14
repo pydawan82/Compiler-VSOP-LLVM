@@ -20,9 +20,9 @@ public class ASTOi extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        ctx.push(id);
         
-        return String.format(format);
+        return "";
     }
 
     @Override

@@ -30,14 +30,13 @@ public class ASTBinop extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-
         String llvmLeft = leftExpr.emitLLVM(ctx);
-        String left = var(ctx.getLastValue());
+        String left = ctx.getLastValue();
 
-        String llvmRight = leftExpr.emitLLVM(ctx);
-        String right = var(ctx.getLastValue());
+        String llvmRight = rightExpr.emitLLVM(ctx);
+        String right = ctx.getLastValue();
         
-        String op = op(LLVMConstants.binOp(operator), Generator.toLLVMType(operator.retType), var(left), var(right));
+        String op = op(LLVMConstants.binOp(operator), Generator.toLLVMType(operator.opType), left, right);
         String operation = assign(var(ctx.unnamed()), op);
 
         return String.join(System.lineSeparator(), llvmLeft, llvmRight, operation);

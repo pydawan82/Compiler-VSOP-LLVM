@@ -11,6 +11,7 @@ import compiler.ast.ASTExpr;
 import compiler.ast.ASTProgram;
 import compiler.vsop.VSOPClass;
 import compiler.vsop.VSOPConstants;
+import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
 import compiler.vsop.VSOPType;
 
@@ -47,7 +48,6 @@ public class Generator {
      * @param out - The {@link PrintStream} to be written
      */
     public void emitLLVM() {
-        Context ctx = new Context(classMap, new HashMap<>());
 
         out.println(section("Classes"));
         defineClasses();
@@ -56,7 +56,7 @@ public class Generator {
         declareVTables();
 
         out.println(section("Functions"));
-        declareFunctions(ctx);
+        declareFunctions();
     }
 
     private void defineClasses() {
@@ -142,25 +142,32 @@ public class Generator {
         out.println(def);
     }
 
-    private void declareFunctions(Context ctx) {
-    class_loop:
+    private void declareFunctions() {
         for(VSOPClass parent: classMap.values()) {
             for(VSOPMethod method: parent.methods.values()) {
 
                 if(method.getParent() == VSOPConstants.OBJECT)
-                    continue class_loop;
+                    continue;
 
                 ASTExpr body = methods.get(method);
-                declareFunction(ctx, method, body);
+                declareFunction(method, body);
             }
         }
     }
     
-    private void declareFunction(Context ctx, VSOPMethod method, ASTExpr body) {
+    private void declareFunction(VSOPMethod method, ASTExpr body) {
+        Context ctx = new Context(classMap, new HashMap<>());
+        ctx.updateVariable("self");//TODO Ptet faire une constante
+        for(VSOPField arg: method.args)
+            ctx.updateVariable(arg.id);
+
         String returnType = toLLVMType(method.returnType);
         String id = functionId(method.getParent().id, method.id);
         List<String> args = argsToLLVMType(method);
-        String bodyStr = indentBlock(body.emitLLVM(ctx));
+        String temp = body.emitLLVM(ctx);
+        String retInstr = ret(ctx.getLastValue());
+        //TODO Faire un beau truc svp merci
+        String bodyStr = indentBlock(temp+System.lineSeparator()+retInstr+System.lineSeparator());
 
         String def = defFunction(returnType, id, args, bodyStr);
         out.println(def);
@@ -169,6 +176,7 @@ public class Generator {
     private String labelPattern = "[0-9]+:\\s*";
     private String indentBlock(String block) {
         return block.lines()
+                .filter(l -> !l.isBlank())
                 .map(l -> l.matches(labelPattern) ? l : '\t'+l)
                 .collect(Collectors.joining(System.lineSeparator()));
     }

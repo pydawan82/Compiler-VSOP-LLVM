@@ -3,8 +3,11 @@ package compiler.ast;
 import java.io.PrintStream;
 
 import compiler.llvm.Context;
+import compiler.llvm.LLVMConstants;
+import compiler.llvm.LLVMFormatter;
 
 import static compiler.vsop.VSOPConstants.INT32;
+import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTMinus extends ASTExpr {
 
@@ -17,9 +20,12 @@ public class ASTMinus extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        String instr = expr.emitLLVM(ctx);
+        String lastVar = ctx.getLastValue();
+
+        String minus = op("sub", LLVMConstants.INT32, "0", lastVar);
         
-        return String.format(format);
+        return String.join(System.lineSeparator(), instr, minus);
     }
 
     @Override

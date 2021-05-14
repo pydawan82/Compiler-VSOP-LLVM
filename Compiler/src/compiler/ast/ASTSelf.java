@@ -13,9 +13,9 @@ public class ASTSelf extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        ctx.setLastValue(ctx.ordinalOf("self"));
         
-        return String.format(format);
+        return "";
     }
 
     @Override

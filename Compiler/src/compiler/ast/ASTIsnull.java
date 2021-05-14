@@ -6,6 +6,8 @@ import compiler.llvm.Context;
 
 import static compiler.vsop.VSOPConstants.BOOL;
 
+import static compiler.llvm.LLVMFormatter.*;
+
 public class ASTIsnull extends ASTExpr {
 
     ASTExpr expr;
@@ -17,9 +19,12 @@ public class ASTIsnull extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String format = "";
+        String exprStr = expr.emitLLVM(ctx);
+        String value = ctx.getLastValue();
         
-        return String.format(format);
+        String isnull = assign(ctx.unnamed(), icmp("eq", "i64", value, "0"));
+
+        return String.join(System.lineSeparator(), exprStr, isnull);
     }
 
     @Override
