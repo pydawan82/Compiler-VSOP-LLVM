@@ -1,8 +1,33 @@
-class P {
-	i : int32;
-	add(i : int32) : bool {42}
+class A {
+	a: int32;
+	a() : int32 {
+		0
+	}
 }
-class C extends P {
-	a : bool;
-	add(i : int32) : int32 {i+42}
+
+class B extends A {
+	b: string;
+	b() : int32 {
+		0
+	}
+}
+
+class C extends B {
+	c: bool;
+	c() : int32 {
+		0
+	}
+}
+
+class D extends A {
+	d: bool;
+	d(): int32 {
+		0
+	}
+}
+
+class Main {
+	main(): int32 {
+		0
+	}
 }

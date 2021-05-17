@@ -4,7 +4,7 @@ import java.util.List;
 
 //TODO Comment class
 
-public class VSOPMethod {
+public class VSOPMethod implements Comparable<VSOPMethod> {
 
 	public final String id;
 	public List<VSOPField> args;
@@ -13,6 +13,8 @@ public class VSOPMethod {
 	private VSOPClass parent;
 
 	public final int ln, col;
+
+	public int ord = -1;
 
 	public VSOPMethod(String name, List<VSOPField> args, VSOPType ret) {
 		this(name, args, ret, 0, 0);
@@ -37,5 +39,10 @@ public class VSOPMethod {
 	@Override
 	public String toString() {
 		return String.format("VSOPMethod(%s)", id);
+	}
+
+	@Override
+	public int compareTo(VSOPMethod m) {
+		return this.ord - m.ord;
 	}
 }

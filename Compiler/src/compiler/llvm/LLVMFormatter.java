@@ -221,4 +221,10 @@ public final class LLVMFormatter {
 
         return format.formatted(value);
     }
+
+    public static String GET(String type, String ptrval, String ty, int idx) {
+        String format = "get elementptr %s, %s* %s, %s %d";
+
+        return format.formatted(type, type, ptrval, type, idx);
+    }
 }

@@ -3,7 +3,10 @@ package compiler.ast;
 import java.io.PrintStream;
 
 import compiler.llvm.Context;
+import compiler.llvm.Generator;
 import compiler.vsop.VSOPType;
+
+import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTOi extends ASTExpr {
 
@@ -20,9 +23,16 @@ public class ASTOi extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        ctx.push(id);
+        if(ctx.push(id)) return "";
         
-        return "";
+        String type = Generator.toLLVMType(ctx.method.getParent()).split("\\*")[0];
+        String self = var(ctx.ordinalOf("self"));
+        String varType = Generator.toLLVMType(this.type);
+        int idx = ctx.ordinalOfField(id);
+        
+        int ord = ctx.unnamed();
+
+        return assign(ord, GET(type, self, varType, idx));
     }
 
     @Override

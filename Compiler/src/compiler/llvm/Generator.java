@@ -1,7 +1,6 @@
 package compiler.llvm;
 
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +10,6 @@ import compiler.ast.ASTExpr;
 import compiler.ast.ASTProgram;
 import compiler.vsop.VSOPClass;
 import compiler.vsop.VSOPConstants;
-import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
 import compiler.vsop.VSOPType;
 
@@ -71,7 +69,7 @@ public class Generator {
         String classType = classId(clazz.id);
         String vTableName = vTableType(clazz.id);
 
-        List<String> types = clazz.fields.values().stream()
+        List<String> types = clazz.fieldList().stream()
                 .map(f -> f.type)
                 .map(Generator::toLLVMType)
                 .collect(Collectors.toList());
@@ -81,7 +79,7 @@ public class Generator {
         String typeDef = defStruct(classType, types);
         out.println(typeDef);
 
-        List<String> args = clazz.methods.values().stream()
+        List<String> args = clazz.methodList().stream()
                 .map(this::toLLVMType)
                 .toList();
 
@@ -132,7 +130,7 @@ public class Generator {
 
     private void declareVTable(VSOPClass clazz) {
         
-        List<String> functions = clazz.methods.values().stream()
+        List<String> functions = clazz.methodList().stream()
                 .map(m -> toLLVMType(m)+" "+ global(functionId(m.getParent().id, m.id)))
                 .toList();
         
@@ -144,7 +142,7 @@ public class Generator {
 
     private void declareFunctions() {
         for(VSOPClass parent: classMap.values()) {
-            for(VSOPMethod method: parent.methods.values()) {
+            for(VSOPMethod method: parent.methodList()) {
 
                 if(method.getParent() == VSOPConstants.OBJECT)
                     continue;
@@ -156,10 +154,7 @@ public class Generator {
     }
     
     private void declareFunction(VSOPMethod method, ASTExpr body) {
-        Context ctx = new Context(classMap, new HashMap<>());
-        ctx.updateVariable("self");//TODO Ptet faire une constante
-        for(VSOPField arg: method.args)
-            ctx.updateVariable(arg.id);
+        Context ctx = new Context(classMap, method);
 
         String returnType = toLLVMType(method.returnType);
         String id = functionId(method.getParent().id, method.id);

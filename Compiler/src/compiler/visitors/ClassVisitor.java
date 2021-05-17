@@ -72,7 +72,7 @@ public class ClassVisitor {
 			return;
 		}
 
-		VSOPMethod m = main.value().methods.get(MAIN_METHOD);
+		VSOPMethod m = main.value().methods().get(MAIN_METHOD);
 		if (m == null) {
 			errorQueue.add(new SemanticError(String.format(
 					"Could not find %s method in class %s", MAIN_METHOD, MAIN_CLASS)));

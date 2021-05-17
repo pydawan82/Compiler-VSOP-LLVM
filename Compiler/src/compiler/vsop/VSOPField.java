@@ -3,12 +3,14 @@ package compiler.vsop;
 
 //TODO Comment class
 
-public class VSOPField {
+public class VSOPField implements Comparable<VSOPField> {
 
 	public final String id;
 	public VSOPType type;
 
 	public final int ln, col;
+
+	public int ord = -1;
 
 	public VSOPField(String name, VSOPType type, int ln, int col) {
 		this.id = name;
@@ -16,6 +18,7 @@ public class VSOPField {
 
 		this.ln = ln;
 		this.col = col;
+
 	}
 
 	public VSOPField(String name, VSOPType type) {
@@ -51,6 +54,11 @@ public class VSOPField {
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(VSOPField f) {
+		return this.ord - f.ord;
 	}
 
 }

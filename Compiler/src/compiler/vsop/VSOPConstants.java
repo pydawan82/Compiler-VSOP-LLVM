@@ -37,8 +37,15 @@ public class VSOPConstants {
 				inputInt32.id, inputInt32);
 		
 		methods.values().forEach(m -> m.setParent(OBJECT));
+
+		int ord = 0;
 		
-		OBJECT.methods.putAll(methods);
+		for(var m: methods.values()) {
+			m.ord = ord;
+			ord++;
+		}
+
+		OBJECT.methods().putAll(methods);
 	}
 
 	public static final List<String> reservedNames = List.of("and", "extends", "isnull", "false", "let", "then",

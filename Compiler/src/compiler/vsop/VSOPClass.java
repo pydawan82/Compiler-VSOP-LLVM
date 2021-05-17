@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
@@ -15,7 +16,8 @@ import compiler.error.SemanticError;
 public class VSOPClass extends VSOPType {
 	public VSOPClass superClass;
 	public final Map<String, VSOPField> fields = new HashMap<>();
-	public final Map<String, VSOPMethod> methods = new HashMap<>();
+
+	private final Map<String, VSOPMethod> methods = new HashMap<>();
 
 	public final int ln, col;
 
@@ -25,8 +27,8 @@ public class VSOPClass extends VSOPType {
 		
 		this.superClass = superClass;
 
-		this.fields.putAll(fields);
-		this.methods.putAll(methods);
+		fields().putAll(fields);
+		methods().putAll(methods);
 
 		this.ln = ln;
 		this.col = col;
@@ -44,6 +46,30 @@ public class VSOPClass extends VSOPType {
 		this(name, superClass, fields, functions, 0, 0);
 	}
 
+	public Map<String, VSOPField> fields() {
+		return fields;
+	}
+
+	public List<VSOPField> fieldList() {
+		List<VSOPField> list = fields.values().stream()
+				.collect(Collectors.toList());
+		list.sort(null);
+
+		return list;
+	}
+
+	public Map<String, VSOPMethod> methods() {
+		return methods;
+	}
+
+	public List<VSOPMethod> methodList() {
+		List<VSOPMethod> list = methods.values().stream()
+				.collect(Collectors.toList());
+		list.sort(null);
+
+		return list;
+	}
+
 	public boolean isAncestor(VSOPClass c) {
 		if (this == c)
 			return true;
@@ -59,12 +85,22 @@ public class VSOPClass extends VSOPType {
 		if (superClass == null)
 			return errors;
 
+		int max = -1;
 		for (String key : superClass.fields.keySet()) {
 			VSOPField f = superClass.fields.get(key);
+			max = Math.max(max, f.ord);
 			VSOPField old = fields.put(key, f);
+
 			if (old != null)
 				errors.add(
 						new SemanticError(f.ln, f.col, String.format("field %s is redefined in %s", f.id, this.id)));
+		}
+
+		for(VSOPField f: fields().values()) {
+			if(f.ord == -1) {
+				max++;
+				f.ord = max;
+			}
 		}
 
 		return errors;
@@ -75,14 +111,28 @@ public class VSOPClass extends VSOPType {
 
 		if (superClass == null)
 			return errors;
+		
+		int max = -1;
 
 		for (String key : superClass.methods.keySet()) {
 			VSOPMethod m = superClass.methods.get(key);
+			max = Math.max(max, m.ord);
 			VSOPMethod old = methods.putIfAbsent(key, m);
+
+			if(old != null)
+				old.ord = m.ord;
+				
 			if (old != null && (!m.args.equals(old.args) || m.returnType != old.returnType))
 				errors.add(new SemanticError(m.ln, m.col,
 						String.format("method %s is redefined in class %s with wrong signature", m.id, this.id)));
 
+		}
+
+		for(VSOPMethod m: methods().values()) {
+			if(m.ord == -1) {
+				max++;
+				m.ord = max;
+			}
 		}
 
 		return errors;
