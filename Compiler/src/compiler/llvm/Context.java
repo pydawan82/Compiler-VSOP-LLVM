@@ -77,6 +77,9 @@ public class Context {
             fieldOrdinal.put(f.id, ord);
             ord++;
         }
+        
+        //Label skip
+        unnamed();
     }
 
     /**

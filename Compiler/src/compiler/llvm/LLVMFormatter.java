@@ -60,7 +60,7 @@ public final class LLVMFormatter {
     }
 
     public static String initId(String classId) {
-        String format = "%s___init";
+        String format = "%s___new";
 
         return format.formatted(classId);
     }

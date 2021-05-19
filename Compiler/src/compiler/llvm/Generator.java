@@ -44,7 +44,7 @@ public class Generator {
      * @param classMap - a Map<String, VSOPClass> where string is the name of the VSOPClasses.
      * @param fields - a Map<VSOPField, Optional<ASTExpr>> field to the initialization of the field (optionnal).
      * @param methods - a Map<VSOPMethod, ASTExpr> method to ASTExpr of the method.
-     * @param out - a PrintStream to see where 
+     * @param out - a PrintStream to see where to print the LLVM code.
      */
     public Generator(Map<String, VSOPClass> classMap, Map<VSOPField, Optional<ASTExpr>> fields, Map<VSOPMethod, ASTExpr> methods, PrintStream out) {
         this.classMap = Objects.requireNonNull(classMap);
@@ -214,10 +214,19 @@ public class Generator {
         out.println(def);
     }
 
+    /**
+     * Emit the LLVM code relative to the declaration of the constructors.
+     */
     private void declareConstructors() {
-        classMap.values().forEach(this::declareConstructor);
+        classMap.values().stream()
+                .filter(clazz -> clazz != VSOPConstants.OBJECT)
+                .forEach(this::declareConstructor);
     }
 
+    /**
+     * Emit the LLVM code relative to the declaration of the Constructor of a class.
+     * @param clazz - a VSOPClass.
+     */
     private void declareConstructor(VSOPClass clazz) {
         Context ctx = new Context(clazz);
 
@@ -231,6 +240,10 @@ public class Generator {
         out.println(ctx.stringDeclarations());
     }
 
+    /**
+     * Emit the LLVM code relative to the initialization of a class.
+     * @param clazz - a VSOPClass.
+     */
     private String init(Context ctx, VSOPClass clazz) {
         String malloc = LLVMUtil.mallocOf(ctx, clazz);
         String vtableInit = initVTable(ctx, clazz);
@@ -238,18 +251,35 @@ public class Generator {
                 .map(f -> initField(ctx, clazz, f, fields.get(f)))
                 .collect(Collectors.joining(System.lineSeparator()));
 
-        return String.join(System.lineSeparator(), malloc, vtableInit, fieldInit);
+        String ret = ret(toLLVMType(clazz), ctx.getLastValue());
+
+        return String.join(System.lineSeparator(), malloc, vtableInit, fieldInit, ret);
     }
 
+    /**
+     * Emit the LLVM code relative to the initialization of the vTables of a class.
+     * @param ctx - A context object that store any data related to code generation
+     * and current context of the VSOP program.
+     * @param clazz - a VSOPClass.
+     */
     private String initVTable(Context ctx, VSOPClass clazz) {
         String objPtr = ctx.getLastValue();
         int vtablePtr = ctx.unnamed();
         String getVTable = assign(vtablePtr, GET(toRawLLVMType(clazz), objPtr, 0));
         String store = store(pointerOf(type(vTableType(clazz.id))), global(vTableName(clazz.id)), var(vtablePtr));
-
+        ctx.setLastValue(objPtr);
+        
         return String.join(System.lineSeparator(), getVTable, store);
     }
 
+    /**
+     * Emit the LLVM code relative to the initialization of a field of a class.
+     * @param ctx - A context object that store any data related to code generation
+     * and current context of the VSOP program.
+     * @param clazz - a VSOPClass.
+     * @param field - a VSOPField.
+     * @param expr - The ASTExpr of initialization of the field.
+     */
     private String initField(Context ctx, VSOPClass clazz, VSOPField field, Optional<ASTExpr> expr) {
         String objPtr = ctx.getLastValue();
         int fieldPtr = ctx.unnamed();
@@ -336,6 +366,9 @@ public class Generator {
                 .collect(Collectors.joining(System.lineSeparator()));
     }
 
+    /**
+     * Emit the LLVM code relative to the declaration of the main function (entry point).
+     */
     private void declareMain() {
         VSOPClass mainClass = classMap.get(VSOPConstants.MAIN_CLASS);
         VSOPMethod mainMethod = mainClass.methods().get(VSOPConstants.MAIN_METHOD);
@@ -354,6 +387,9 @@ public class Generator {
         out.println(ctx.stringDeclarations());
     }
 
+    /**
+     * Emit the LLVM code relative to the runtime resources (Object.ll).
+     */
     private void declareRuntime() {
         try(Scanner scanner = new Scanner(new File(RUNTIME))) {
             scanner.useDelimiter("\n");
