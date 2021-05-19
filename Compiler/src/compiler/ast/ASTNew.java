@@ -10,7 +10,6 @@ import compiler.vsop.VSOPType;
 import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTNew extends ASTExpr {
-    String id;
     
     public ASTNew(
             VSOPType type
@@ -29,7 +28,7 @@ public class ASTNew extends ASTExpr {
 
     @Override
     public void print(PrintStream pStream, int indent) {
-		pStream.printf("New(%s)", id);
+		pStream.printf("New(%s)", type.id);
 		pStream.printf(":%s", type.id);
     }
     
