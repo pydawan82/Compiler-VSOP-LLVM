@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -174,10 +175,15 @@ public class Compiler {
 		Process clang = runtime.exec(compileCmd(llName, outName));
 		
 		int ret = clang.waitFor();
+		try(Scanner scan = new Scanner(clang.getInputStream())) {
+			scan.useDelimiter(System.lineSeparator());
+			scan.forEachRemaining(System.out::println);
+		}
 		return ret == SUCCESS;
 	}
 
 	public static void main(String[] args) {
+
 		List<String> argList = Arrays.asList(args);
 
 		int size = argList.size();
