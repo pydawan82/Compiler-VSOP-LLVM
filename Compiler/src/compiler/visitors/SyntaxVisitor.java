@@ -49,12 +49,20 @@ public class SyntaxVisitor {
 		map.put(BlContext.class, (ExprContext c) -> visitBl((BlContext) c));
 	}
 
+	/**
+	 * Print tabulation in order to make the output a bit more readable.
+	 */
 	private void printTab() {
 		for (int i = 0; i < tab; i++) {
 			out.print(TAB);
 		}
 	}
 
+
+	/**
+	 * Print out the AST for the -c options of the compiler using the visitor methodology.
+	 * @param ctx - the program context.
+	 */
 	public void visitProgram(ProgramContext ctx) {
 		tab++;
 

@@ -39,16 +39,26 @@ public class ClassVisitor {
 		this(System.err);
 	}
 
+	/**
+	 * Flush the Task queue by running every task.
+	 */
 	private void flushTaskQueue() {
 		taskQueue.forEach(Runnable::run);
 		taskQueue.clear();
 	}
 
+	/**
+	 * Flush the error queue by printing all errors.
+	 */
 	private void flushErrorQueue() {
 		errorQueue.forEach(err::println);
 		errorQueue.clear();
 	}
 
+	/**
+	 * Check the cyclic inheritance of a program.
+	 * @return Returns a boolean stating if the check returns an error (true) or not (false)
+	 */
 	private boolean checkCyclicInheritance() {
 		return classMap.values().stream()
 				.map(Node::value)
@@ -58,6 +68,9 @@ public class ClassVisitor {
 				.reduce(true, Boolean::logicalAnd);
 	}
 
+	/**
+	 * Check the inheritance of the classes. Add the errors to the error queue.
+	 */
 	private void checkInheritance() {
 		classTree.visit(cl -> {
 			errorQueue.addAll(cl.checkFieldInheritance());
@@ -65,6 +78,9 @@ public class ClassVisitor {
 		});
 	}
 
+	/**
+	 * Check the presence of a Main class containing a main method.
+	 */
 	private void checkMain() {
 		Node<VSOPClass> main = classMap.get(MAIN_CLASS);
 		if (main == null) {
@@ -86,6 +102,12 @@ public class ClassVisitor {
 		}
 	}
 
+	/**
+	 * Create a map of the class identified by their name. Check the cyclic inheritance,
+	 * the inheritance and the presence of a main.
+	 * @param ctx - context of a program.
+	 * @return Returns a map containing the VSOPClass identified by their name.
+	 */
 	public Map<String, VSOPClass> classMap(VSOPParser.ProgramContext ctx) {
 		visitProgram(ctx);
 		flushTaskQueue();
@@ -106,6 +128,13 @@ public class ClassVisitor {
 
 		return hasError ? map : null;
 	}
+
+	
+	/**
+	 * The visit methods below follow the visitor methodology.
+	 * The methods here checks the different possible errors like redefinitiono of class, fields, ...
+	 * They also returns the VSOPClass, VSOPMethods, etc. of each context.
+	 */
 
 	private void visitProgram(VSOPParser.ProgramContext ctx) {
 		ctx.clazz().forEach(this::visitClazz);

@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ import compiler.ast.ASTNew;
 import compiler.ast.ASTProgram;
 import compiler.vsop.VSOPClass;
 import compiler.vsop.VSOPConstants;
+import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
 import compiler.vsop.VSOPType;
 
@@ -33,16 +35,20 @@ public class Generator {
      * TODO Probably to be removed
      */
     private final Map<String, VSOPClass> classMap;
+    private final Map<VSOPField, Optional<ASTExpr>> fields;
     private final Map<VSOPMethod, ASTExpr> methods;
     private final PrintStream out;
 
     /**
-     * Creates a new generator given a program tree and a map of defined classes.
-     * @param ast - The program tree
-     * @param classMap - The map of defined classes
+     * Constructor of Generator.
+     * @param classMap - a Map<String, VSOPClass> where string is the name of the VSOPClasses.
+     * @param fields - a Map<VSOPField, Optional<ASTExpr>> field to the initialization of the field (optionnal).
+     * @param methods - a Map<VSOPMethod, ASTExpr> method to ASTExpr of the method.
+     * @param out - a PrintStream to see where 
      */
-    public Generator(Map<String, VSOPClass> classMap, Map<VSOPMethod, ASTExpr> methods, PrintStream out) {
+    public Generator(Map<String, VSOPClass> classMap, Map<VSOPField, Optional<ASTExpr>> fields, Map<VSOPMethod, ASTExpr> methods, PrintStream out) {
         this.classMap = Objects.requireNonNull(classMap);
+        this.fields = Objects.requireNonNull(fields);
         this.methods = Objects.requireNonNull(methods);
         this.out = Objects.requireNonNull(out);
     }
@@ -59,6 +65,10 @@ public class Generator {
 
         out.println(section("VTables"));
         declareVTables();
+        out.println();
+
+        out.println(section("Constructors"));
+        declareConstructors();
         out.println();
 
         out.println(section("Functions"));
@@ -184,8 +194,7 @@ public class Generator {
      * Emit LLVM code relative to the declarations of the vTables.
      */
     private void declareVTables() {
-        classMap.values().stream()
-                .forEach(this::declareVTable);
+        classMap.values().forEach(this::declareVTable);
     }
 
 
@@ -203,6 +212,61 @@ public class Generator {
         String def = defConstant(global(vTableName(clazz.id)), type(vTableType(clazz.id)), table);
 
         out.println(def);
+    }
+
+    private void declareConstructors() {
+        classMap.values().forEach(this::declareConstructor);
+    }
+
+    private void declareConstructor(VSOPClass clazz) {
+        Context ctx = new Context(clazz);
+
+        String returnType = toLLVMType(clazz);
+        String id = initId(clazz.id);
+        List<String> args = List.of();
+        String bodyStr = indentBlock(init(ctx, clazz));
+
+        String def = defFunction(returnType, id, args, bodyStr);
+        out.println(def);
+        out.println(ctx.stringDeclarations());
+    }
+
+    private String init(Context ctx, VSOPClass clazz) {
+        String malloc = LLVMUtil.mallocOf(ctx, clazz);
+        String vtableInit = initVTable(ctx, clazz);
+        String fieldInit = clazz.fieldList().stream()
+                .map(f -> initField(ctx, clazz, f, fields.get(f)))
+                .collect(Collectors.joining(System.lineSeparator()));
+
+        return String.join(System.lineSeparator(), malloc, vtableInit, fieldInit);
+    }
+
+    private String initVTable(Context ctx, VSOPClass clazz) {
+        String objPtr = ctx.getLastValue();
+        int vtablePtr = ctx.unnamed();
+        String getVTable = assign(vtablePtr, GET(toRawLLVMType(clazz), objPtr, 0));
+        String store = store(pointerOf(type(vTableType(clazz.id))), global(vTableName(clazz.id)), var(vtablePtr));
+
+        return String.join(System.lineSeparator(), getVTable, store);
+    }
+
+    private String initField(Context ctx, VSOPClass clazz, VSOPField field, Optional<ASTExpr> expr) {
+        String objPtr = ctx.getLastValue();
+        int fieldPtr = ctx.unnamed();
+        String getField = assign(fieldPtr, GET(toRawLLVMType(clazz), objPtr, ctx.ordinalOfField(field.id)));
+        Optional<String> pre;
+        String value;
+        if(expr.isPresent()) {
+            pre = Optional.of(expr.get().emitLLVM(ctx));
+            value = ctx.getLastValue();
+        } else {
+            pre = Optional.empty();
+            value = LLVMConstants.defaultValue(field.type);
+        }
+        String store = store(toLLVMType(field.type), value, var(fieldPtr));
+
+        ctx.setLastValue(objPtr);
+        return String.join(System.lineSeparator(), getField, pre.orElse(""), store);
     }
 
     /**

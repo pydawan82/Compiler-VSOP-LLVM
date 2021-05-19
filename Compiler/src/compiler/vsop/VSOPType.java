@@ -1,6 +1,8 @@
 package compiler.vsop;
 
-//TODO Comment class
+/**
+ * Class representing a type in the VSOP language.
+ */
 
 public class VSOPType {
 	public final String id;

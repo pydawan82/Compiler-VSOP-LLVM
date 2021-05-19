@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 
-//TODO Comment class
+/**
+ * Class representing the constant of the VSOP language.
+ */
 
 public class VSOPConstants {
 	public static final VSOPType INT32 = new VSOPType("int32", 0);

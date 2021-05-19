@@ -1,6 +1,8 @@
 package compiler.vsop;
 
-//TODO Comment class
+/**
+ * Class representing a Binary operator.
+ */
 
 public class VSOPBinOp {
 	public final String id;

@@ -3,6 +3,9 @@ package compiler.llvm;
 import java.util.Map;
 
 import compiler.vsop.VSOPBinOp;
+import compiler.vsop.VSOPClass;
+import compiler.vsop.VSOPConstants;
+import compiler.vsop.VSOPType;
 
 import static compiler.vsop.VSOPConstants.*;
 
@@ -18,6 +21,21 @@ public final class LLVMConstants {
 
     public static final String NULL = "null";
     public static final String NONE = "none";
+
+    protected static final String EMPTY_STRING = "";
+
+    public static String defaultValue(VSOPType type) {
+        if(type instanceof VSOPClass)
+            return NULL;
+        if(type == VSOPConstants.BOOL)
+            return FALSE;
+        if(type == VSOPConstants.INT32)
+            return String.valueOf(0);
+        if(type == VSOPConstants.STRING)
+            return EMPTY_STRING;
+        
+        throw new CompilationException("Unreachable branch");
+    }
 
     
     /**

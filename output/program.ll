@@ -3,33 +3,91 @@
 ; 
 ; Class Nil
 %Nil = type {%NilVTable*}
-%NilVTable = type {%Object* (%Object*, i1)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i32)*, i1 (%Object*)*, i8* (%Object*)*, i32 (%Object*)*, i32 (%List*)*, i1 (%List*)*}
+%NilVTable = type {i32 (%Object*)*, i8* (%Object*)*, i1 (%Object*)*, %Object* (%Object*, i32)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i1)*, i32 (%List*)*, i1 (%List*)*}
 
 ; Class Cons
 %Cons = type {%ConsVTable*, i32, %List*}
-%ConsVTable = type {%Object* (%Object*, i1)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i32)*, i1 (%Object*)*, i8* (%Object*)*, i32 (%Object*)*, i32 (%Cons*)*, i1 (%Cons*)*, i32 (%Cons*)*, %Cons* (%Cons*, i32, %List*)*}
+%ConsVTable = type {i32 (%Object*)*, i8* (%Object*)*, i1 (%Object*)*, %Object* (%Object*, i32)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i1)*, i32 (%Cons*)*, i1 (%Cons*)*, i32 (%Cons*)*, %Cons* (%Cons*, i32, %List*)*}
 
 ; Class Object
 %Object = type {%ObjectVTable*}
-%ObjectVTable = type {%Object* (%Object*, i1)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i32)*, i1 (%Object*)*, i8* (%Object*)*, i32 (%Object*)*}
+%ObjectVTable = type {i32 (%Object*)*, i8* (%Object*)*, i1 (%Object*)*, %Object* (%Object*, i32)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i1)*}
 
 ; Class List
 %List = type {%ListVTable*}
-%ListVTable = type {%Object* (%Object*, i1)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i32)*, i1 (%Object*)*, i8* (%Object*)*, i32 (%Object*)*, i32 (%List*)*, i1 (%List*)*}
+%ListVTable = type {i32 (%Object*)*, i8* (%Object*)*, i1 (%Object*)*, %Object* (%Object*, i32)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i1)*, i32 (%List*)*, i1 (%List*)*}
 
 ; Class Main
 %Main = type {%MainVTable*}
-%MainVTable = type {%Object* (%Object*, i1)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i32)*, i1 (%Object*)*, i8* (%Object*)*, i32 (%Object*)*, i32 (%Main*)*}
+%MainVTable = type {i32 (%Object*)*, i8* (%Object*)*, i1 (%Object*)*, %Object* (%Object*, i32)*, %Object* (%Object*, i8*)*, %Object* (%Object*, i1)*, i32 (%Main*)*}
 
 
 ; 
 ; VTables
 ; 
-@Nil___vtable = constant %NilVTable {%Object* (%Object*, i1)* @Object__printBool, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i32)* @Object__printInt32, i1 (%Object*)* @Object__inputBool, i8* (%Object*)* @Object__inputLine, i32 (%Object*)* @Object__inputInt32, i32 (%List*)* @List__length, i1 (%List*)* @List__isNil}
-@Cons___vtable = constant %ConsVTable {%Object* (%Object*, i1)* @Object__printBool, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i32)* @Object__printInt32, i1 (%Object*)* @Object__inputBool, i8* (%Object*)* @Object__inputLine, i32 (%Object*)* @Object__inputInt32, i32 (%Cons*)* @Cons__length, i1 (%Cons*)* @Cons__isNil, i32 (%Cons*)* @Cons__head, %Cons* (%Cons*, i32, %List*)* @Cons__init}
-@Object___vtable = constant %ObjectVTable {%Object* (%Object*, i1)* @Object__printBool, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i32)* @Object__printInt32, i1 (%Object*)* @Object__inputBool, i8* (%Object*)* @Object__inputLine, i32 (%Object*)* @Object__inputInt32}
-@List___vtable = constant %ListVTable {%Object* (%Object*, i1)* @Object__printBool, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i32)* @Object__printInt32, i1 (%Object*)* @Object__inputBool, i8* (%Object*)* @Object__inputLine, i32 (%Object*)* @Object__inputInt32, i32 (%List*)* @List__length, i1 (%List*)* @List__isNil}
-@Main___vtable = constant %MainVTable {%Object* (%Object*, i1)* @Object__printBool, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i32)* @Object__printInt32, i1 (%Object*)* @Object__inputBool, i8* (%Object*)* @Object__inputLine, i32 (%Object*)* @Object__inputInt32, i32 (%Main*)* @Main__main}
+@Nil___vtable = constant %NilVTable {i32 (%Object*)* @Object__inputInt32, i8* (%Object*)* @Object__inputLine, i1 (%Object*)* @Object__inputBool, %Object* (%Object*, i32)* @Object__printInt32, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i1)* @Object__printBool, i32 (%List*)* @List__length, i1 (%List*)* @List__isNil}
+@Cons___vtable = constant %ConsVTable {i32 (%Object*)* @Object__inputInt32, i8* (%Object*)* @Object__inputLine, i1 (%Object*)* @Object__inputBool, %Object* (%Object*, i32)* @Object__printInt32, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i1)* @Object__printBool, i32 (%Cons*)* @Cons__length, i1 (%Cons*)* @Cons__isNil, i32 (%Cons*)* @Cons__head, %Cons* (%Cons*, i32, %List*)* @Cons__init}
+@Object___vtable = constant %ObjectVTable {i32 (%Object*)* @Object__inputInt32, i8* (%Object*)* @Object__inputLine, i1 (%Object*)* @Object__inputBool, %Object* (%Object*, i32)* @Object__printInt32, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i1)* @Object__printBool}
+@List___vtable = constant %ListVTable {i32 (%Object*)* @Object__inputInt32, i8* (%Object*)* @Object__inputLine, i1 (%Object*)* @Object__inputBool, %Object* (%Object*, i32)* @Object__printInt32, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i1)* @Object__printBool, i32 (%List*)* @List__length, i1 (%List*)* @List__isNil}
+@Main___vtable = constant %MainVTable {i32 (%Object*)* @Object__inputInt32, i8* (%Object*)* @Object__inputLine, i1 (%Object*)* @Object__inputBool, %Object* (%Object*, i32)* @Object__printInt32, %Object* (%Object*, i8*)* @Object__print, %Object* (%Object*, i1)* @Object__printBool, i32 (%Main*)* @Main__main}
+
+; 
+; Constructors
+; 
+define %Nil* @Nil___init () {
+	%0 = getelementptr %Nil, %Nil* null, i32 1
+	%1 = ptrtoint %Nil* %0 to i64
+	%2 = call i8* @malloc(i64 %1)
+	%3 = bitcast i8* %2 to %Nil*
+	%4 = getelementptr %Nil, %Nil* %3, i32 0,i32 0
+	store %NilVTable* @Nil___vtable, %NilVTable** %4
+}
+
+
+define %Cons* @Cons___init () {
+	%0 = getelementptr %Cons, %Cons* null, i32 1
+	%1 = ptrtoint %Cons* %0 to i64
+	%2 = call i8* @malloc(i64 %1)
+	%3 = bitcast i8* %2 to %Cons*
+	%4 = getelementptr %Cons, %Cons* %3, i32 0,i32 0
+	store %ConsVTable* @Cons___vtable, %ConsVTable** %4
+	%5 = getelementptr %Cons, %Cons* %4, i32 0,i32 1
+	store i32 0, i32* %5
+	%6 = getelementptr %Cons, %Cons* %4, i32 0,i32 2
+	store %List* null, %List** %6
+}
+
+
+define %Object* @Object___init () {
+	%0 = getelementptr %Object, %Object* null, i32 1
+	%1 = ptrtoint %Object* %0 to i64
+	%2 = call i8* @malloc(i64 %1)
+	%3 = bitcast i8* %2 to %Object*
+	%4 = getelementptr %Object, %Object* %3, i32 0,i32 0
+	store %ObjectVTable* @Object___vtable, %ObjectVTable** %4
+}
+
+
+define %List* @List___init () {
+	%0 = getelementptr %List, %List* null, i32 1
+	%1 = ptrtoint %List* %0 to i64
+	%2 = call i8* @malloc(i64 %1)
+	%3 = bitcast i8* %2 to %List*
+	%4 = getelementptr %List, %List* %3, i32 0,i32 0
+	store %ListVTable* @List___vtable, %ListVTable** %4
+}
+
+
+define %Main* @Main___init () {
+	%0 = getelementptr %Main, %Main* null, i32 1
+	%1 = ptrtoint %Main* %0 to i64
+	%2 = call i8* @malloc(i64 %1)
+	%3 = bitcast i8* %2 to %Main*
+	%4 = getelementptr %Main, %Main* %3, i32 0,i32 0
+	store %MainVTable* @Main___vtable, %MainVTable** %4
+}
+
+
 
 ; 
 ; Functions
@@ -80,82 +138,62 @@ define i1 @List__isNil (%List*) {
 
 
 define i32 @Main__main (%Main*) {
-	%2 = getelementptr %Cons, %Cons* null, i32 1
-	%3 = ptrtoint %Cons* %2 to i64
-	%4 = call i8* @malloc(i64 %3)
-	%5 = bitcast i8* %4 to %Cons*
-	%6 = getelementptr %Cons, %Cons* %5, i32 0,i32 0
-	store %ConsVTable* @Cons___vtable, %ConsVTable** %6
-	%7 = bitcast %Cons* %5 to %Cons*
-	%8 = getelementptr %Cons, %Cons* %7, i32 0,i32 0
-	%9 = load %ConsVTable*, %ConsVTable** %8
-	%10 = getelementptr %ConsVTable, %ConsVTable* %9, i32 0,i32 9
-	%11 = load %Cons* (%Cons*, i32, %List*)*, %Cons* (%Cons*, i32, %List*)** %10
-	%12 = bitcast i32 0 to i32
-	%13 = getelementptr %Cons, %Cons* null, i32 1
-	%14 = ptrtoint %Cons* %13 to i64
-	%15 = call i8* @malloc(i64 %14)
-	%16 = bitcast i8* %15 to %Cons*
-	%17 = getelementptr %Cons, %Cons* %16, i32 0,i32 0
-	store %ConsVTable* @Cons___vtable, %ConsVTable** %17
-	%18 = bitcast %Cons* %16 to %Cons*
-	%19 = getelementptr %Cons, %Cons* %18, i32 0,i32 0
-	%20 = load %ConsVTable*, %ConsVTable** %19
-	%21 = getelementptr %ConsVTable, %ConsVTable* %20, i32 0,i32 9
-	%22 = load %Cons* (%Cons*, i32, %List*)*, %Cons* (%Cons*, i32, %List*)** %21
-	%23 = bitcast i32 1 to i32
-	%24 = getelementptr %Cons, %Cons* null, i32 1
-	%25 = ptrtoint %Cons* %24 to i64
-	%26 = call i8* @malloc(i64 %25)
-	%27 = bitcast i8* %26 to %Cons*
-	%28 = getelementptr %Cons, %Cons* %27, i32 0,i32 0
-	store %ConsVTable* @Cons___vtable, %ConsVTable** %28
-	%29 = bitcast %Cons* %27 to %Cons*
-	%30 = getelementptr %Cons, %Cons* %29, i32 0,i32 0
-	%31 = load %ConsVTable*, %ConsVTable** %30
-	%32 = getelementptr %ConsVTable, %ConsVTable* %31, i32 0,i32 9
-	%33 = load %Cons* (%Cons*, i32, %List*)*, %Cons* (%Cons*, i32, %List*)** %32
-	%34 = bitcast i32 2 to i32
-	%35 = getelementptr %Nil, %Nil* null, i32 1
-	%36 = ptrtoint %Nil* %35 to i64
-	%37 = call i8* @malloc(i64 %36)
-	%38 = bitcast i8* %37 to %Nil*
-	%39 = getelementptr %Nil, %Nil* %38, i32 0,i32 0
-	store %NilVTable* @Nil___vtable, %NilVTable** %39
-	%40 = bitcast %Nil* %38 to %List*
-	%41 = call %Cons* %33(%Cons* %29, i32 %34, %List* %40)
-	%42 = bitcast %Cons* %41 to %List*
-	%43 = call %Cons* %22(%Cons* %18, i32 %23, %List* %42)
-	%44 = bitcast %Cons* %43 to %List*
-	%45 = call %Cons* %11(%Cons* %7, i32 %12, %List* %44)
-	%46 = bitcast %Cons* %45 to %List*
-	%47 = bitcast %Main* %0 to %Object*
-	%48 = getelementptr %Object, %Object* %47, i32 0,i32 0
-	%49 = load %ObjectVTable*, %ObjectVTable** %48
-	%50 = getelementptr %ObjectVTable, %ObjectVTable* %49, i32 0,i32 1
-	%51 = load %Object* (%Object*, i8*)*, %Object* (%Object*, i8*)** %50
-	%52 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @Main__main.str.0, i64 0, i64 0) to i8*
-	%53 = call %Object* %51(%Object* %47, i8* %52)
-	%54 = bitcast %Main* %0 to %Object*
-	%55 = getelementptr %Object, %Object* %54, i32 0,i32 0
-	%56 = load %ObjectVTable*, %ObjectVTable** %55
-	%57 = getelementptr %ObjectVTable, %ObjectVTable* %56, i32 0,i32 2
-	%58 = load %Object* (%Object*, i32)*, %Object* (%Object*, i32)** %57
-	%59 = bitcast %List* %46 to %List*
-	%60 = getelementptr %List, %List* %59, i32 0,i32 0
-	%61 = load %ListVTable*, %ListVTable** %60
-	%62 = getelementptr %ListVTable, %ListVTable* %61, i32 0,i32 6
-	%63 = load i32 (%List*)*, i32 (%List*)** %62
-	%64 = call i32 %63(%List* %59)
-	%65 = bitcast i32 %64 to i32
-	%66 = call %Object* %58(%Object* %54, i32 %65)
-	%67 = bitcast %Main* %0 to %Object*
-	%68 = getelementptr %Object, %Object* %67, i32 0,i32 0
-	%69 = load %ObjectVTable*, %ObjectVTable** %68
-	%70 = getelementptr %ObjectVTable, %ObjectVTable* %69, i32 0,i32 1
-	%71 = load %Object* (%Object*, i8*)*, %Object* (%Object*, i8*)** %70
-	%72 = bitcast i8* getelementptr inbounds ([2 x i8], [2 x i8]* @Main__main.str.1, i64 0, i64 0) to i8*
-	%73 = call %Object* %71(%Object* %67, i8* %72)
+	%2 = call %Cons* @Cons___init()
+	%3 = bitcast %Cons* %2 to %Cons*
+	%4 = getelementptr %Cons, %Cons* %3, i32 0,i32 0
+	%5 = load %ConsVTable*, %ConsVTable** %4
+	%6 = getelementptr %ConsVTable, %ConsVTable* %5, i32 0,i32 9
+	%7 = load %Cons* (%Cons*, i32, %List*)*, %Cons* (%Cons*, i32, %List*)** %6
+	%8 = bitcast i32 0 to i32
+	%9 = call %Cons* @Cons___init()
+	%10 = bitcast %Cons* %9 to %Cons*
+	%11 = getelementptr %Cons, %Cons* %10, i32 0,i32 0
+	%12 = load %ConsVTable*, %ConsVTable** %11
+	%13 = getelementptr %ConsVTable, %ConsVTable* %12, i32 0,i32 9
+	%14 = load %Cons* (%Cons*, i32, %List*)*, %Cons* (%Cons*, i32, %List*)** %13
+	%15 = bitcast i32 1 to i32
+	%16 = call %Cons* @Cons___init()
+	%17 = bitcast %Cons* %16 to %Cons*
+	%18 = getelementptr %Cons, %Cons* %17, i32 0,i32 0
+	%19 = load %ConsVTable*, %ConsVTable** %18
+	%20 = getelementptr %ConsVTable, %ConsVTable* %19, i32 0,i32 9
+	%21 = load %Cons* (%Cons*, i32, %List*)*, %Cons* (%Cons*, i32, %List*)** %20
+	%22 = bitcast i32 2 to i32
+	%23 = call %Nil* @Nil___init()
+	%24 = bitcast %Nil* %23 to %List*
+	%25 = call %Cons* %21(%Cons* %17, i32 %22, %List* %24)
+	%26 = bitcast %Cons* %25 to %List*
+	%27 = call %Cons* %14(%Cons* %10, i32 %15, %List* %26)
+	%28 = bitcast %Cons* %27 to %List*
+	%29 = call %Cons* %7(%Cons* %3, i32 %8, %List* %28)
+	%30 = bitcast %Cons* %29 to %List*
+	%31 = bitcast %Main* %0 to %Object*
+	%32 = getelementptr %Object, %Object* %31, i32 0,i32 0
+	%33 = load %ObjectVTable*, %ObjectVTable** %32
+	%34 = getelementptr %ObjectVTable, %ObjectVTable* %33, i32 0,i32 4
+	%35 = load %Object* (%Object*, i8*)*, %Object* (%Object*, i8*)** %34
+	%36 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @Main__main.str.0, i64 0, i64 0) to i8*
+	%37 = call %Object* %35(%Object* %31, i8* %36)
+	%38 = bitcast %Main* %0 to %Object*
+	%39 = getelementptr %Object, %Object* %38, i32 0,i32 0
+	%40 = load %ObjectVTable*, %ObjectVTable** %39
+	%41 = getelementptr %ObjectVTable, %ObjectVTable* %40, i32 0,i32 3
+	%42 = load %Object* (%Object*, i32)*, %Object* (%Object*, i32)** %41
+	%43 = bitcast %List* %30 to %List*
+	%44 = getelementptr %List, %List* %43, i32 0,i32 0
+	%45 = load %ListVTable*, %ListVTable** %44
+	%46 = getelementptr %ListVTable, %ListVTable* %45, i32 0,i32 6
+	%47 = load i32 (%List*)*, i32 (%List*)** %46
+	%48 = call i32 %47(%List* %43)
+	%49 = bitcast i32 %48 to i32
+	%50 = call %Object* %42(%Object* %38, i32 %49)
+	%51 = bitcast %Main* %0 to %Object*
+	%52 = getelementptr %Object, %Object* %51, i32 0,i32 0
+	%53 = load %ObjectVTable*, %ObjectVTable** %52
+	%54 = getelementptr %ObjectVTable, %ObjectVTable* %53, i32 0,i32 4
+	%55 = load %Object* (%Object*, i8*)*, %Object* (%Object*, i8*)** %54
+	%56 = bitcast i8* getelementptr inbounds ([2 x i8], [2 x i8]* @Main__main.str.1, i64 0, i64 0) to i8*
+	%57 = call %Object* %55(%Object* %51, i8* %56)
 	ret i32 0
 }
 
@@ -166,19 +204,14 @@ define i32 @Main__main (%Main*) {
 ; Main
 ; 
 define i32 @main () {
-	%1 = getelementptr %Main, %Main* null, i32 1
-	%2 = ptrtoint %Main* %1 to i64
-	%3 = call i8* @malloc(i64 %2)
-	%4 = bitcast i8* %3 to %Main*
-	%5 = getelementptr %Main, %Main* %4, i32 0,i32 0
-	store %MainVTable* @Main___vtable, %MainVTable** %5
-	%6 = bitcast %Main* %4 to %Main*
-	%7 = getelementptr %Main, %Main* %6, i32 0,i32 0
-	%8 = load %MainVTable*, %MainVTable** %7
-	%9 = getelementptr %MainVTable, %MainVTable* %8, i32 0,i32 6
-	%10 = load i32 (%Main*)*, i32 (%Main*)** %9
-	%11 = call i32 %10(%Main* %6)
-	ret i32 %11
+	%1 = call %Main* @Main___init()
+	%2 = bitcast %Main* %1 to %Main*
+	%3 = getelementptr %Main, %Main* %2, i32 0,i32 0
+	%4 = load %MainVTable*, %MainVTable** %3
+	%5 = getelementptr %MainVTable, %MainVTable* %4, i32 0,i32 6
+	%6 = load i32 (%Main*)*, i32 (%Main*)** %5
+	%7 = call i32 %6(%Main* %2)
+	ret i32 %7
 }
 
 

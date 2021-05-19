@@ -68,6 +68,17 @@ public class Context {
         unnamed();
     }
 
+    public Context(VSOPClass clazz) {
+        method = null;
+
+        List<VSOPField> fields = clazz.fieldList();
+        int ord = 1;
+        for(VSOPField f: fields) {
+            fieldOrdinal.put(f.id, ord);
+            ord++;
+        }
+    }
+
     /**
      * Get the ordinal of the field passed as argument.
      * @param fieldId Id of the field (String)

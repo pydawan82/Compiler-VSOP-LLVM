@@ -1,7 +1,9 @@
 package compiler.vsop;
 
 
-//TODO Comment class
+/**
+ * Class representing a field in the VSOP language.
+ */
 
 public class VSOPField implements Comparable<VSOPField> {
 

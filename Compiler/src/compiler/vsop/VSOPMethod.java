@@ -2,7 +2,9 @@ package compiler.vsop;
 
 import java.util.List;
 
-//TODO Comment class
+/**
+ * Class representing a method in the VSOP language.
+ */
 
 public class VSOPMethod implements Comparable<VSOPMethod> {
 

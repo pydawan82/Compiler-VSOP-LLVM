@@ -59,6 +59,12 @@ public final class LLVMFormatter {
         return String.format(format, classId);
     }
 
+    public static String initId(String classId) {
+        String format = "%s___init";
+
+        return format.formatted(classId);
+    }
+
     /**
      * 
      * @param classId - the id of a class 

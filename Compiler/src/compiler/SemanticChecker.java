@@ -3,16 +3,19 @@ package compiler;
 import java.io.PrintStream;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import compiler.ast.ASTExpr;
 import compiler.ast.ASTProgram;
 import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser;
 import compiler.util.Pair;
+import compiler.util.Quad;
 import compiler.util.Triplet;
 import compiler.visitors.ClassVisitor;
 import compiler.visitors.SemanticVisitor;
 import compiler.vsop.VSOPClass;
+import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
 
 /**
@@ -46,7 +49,7 @@ public class SemanticChecker {
      * @return <code>true</code> if checking terminated without errors,
      * <code>false</code> otherwise.
      */
-    public Triplet<Map<String, VSOPClass>, ASTProgram, Map<VSOPMethod, ASTExpr>> check() {
+    public Quad<ASTProgram, Map<String, VSOPClass>, Map<VSOPField, Optional<ASTExpr>>, Map<VSOPMethod, ASTExpr>> check() {
 		VSOPParser.ProgramContext ctx = parser.program();
 		
 		if(ctx == null) {
@@ -60,10 +63,10 @@ public class SemanticChecker {
             return null;
 
         SemanticVisitor semanticVisitor = new SemanticVisitor(map);
-        Pair<ASTProgram, Map<VSOPMethod, ASTExpr>> result = semanticVisitor.check(ctx);
+        var result = semanticVisitor.check(ctx);
         if(result == null)
             return null;
 
-		return new Triplet<Map<String, VSOPClass>, ASTProgram, Map<VSOPMethod, ASTExpr>>(map, result.first(), result.second());
+		return new Quad<>(result.first(), map, result.second(), result.third());
     }
 }

@@ -92,7 +92,7 @@ public class Compiler {
 		if(result == null)
 			return false;
 		
-		result.second().print(out);
+		result.first().print(out);
 
 		return true;
 	}
@@ -110,7 +110,7 @@ public class Compiler {
 			return false;
 		}
 
-		Generator generator = new Generator(result.first(), result.third(), out);
+		Generator generator = new Generator(result.second(), result.third(), result.fourth(), out);
 		generator.emitLLVM();
 
 		return true;

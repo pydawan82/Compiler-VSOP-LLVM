@@ -1,13 +1,13 @@
 package compiler.ast;
 
 import java.io.PrintStream;
+import java.util.List;
 
 import compiler.llvm.Context;
 import compiler.llvm.Generator;
 import compiler.vsop.VSOPType;
 
 import static compiler.llvm.LLVMFormatter.*;
-import static compiler.llvm.LLVMConstants.*;
 
 public class ASTNew extends ASTExpr {
     String id;
@@ -21,33 +21,10 @@ public class ASTNew extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        String classType = Generator.toRawLLVMType(type);
-        int sizePtr = ctx.unnamed();
-        String size = assign(sizePtr, getSize(classType));
-
-        int sizeInt = ctx.unnamed();
-        String sizeI = assign(sizeInt, ptrtoint(pointerOf(classType), var(sizePtr), integer(64)));
-       
-        int rawObjPtr = ctx.unnamed();
-        String malloc = assign(rawObjPtr, malloc(integer(64)+" "+var(sizeInt)));
-       
         int objPtr = ctx.unnamed();
-        String cast = assign(objPtr, bitcast(pointerOf(integer(8)), var(rawObjPtr), pointerOf(classType)));
-
-        int vtablePtr = ctx.unnamed();
-        String getVTable = assign(vtablePtr, GET(classType, var(objPtr), 0));
-        String store = store(pointerOf(type(vTableType(type.id))), global(vTableName(type.id)), var(vtablePtr));
-        
+        String init = assign(objPtr, call(Generator.toLLVMType(type), global(initId(type.id)), List.of()));
         ctx.setLastValue(objPtr);
-
-        return String.join(System.lineSeparator(), 
-                size,
-                sizeI,
-                malloc,
-                cast,
-                getVTable,
-                store
-            );
+        return init;
     }
 
     @Override

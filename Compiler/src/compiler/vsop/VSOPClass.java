@@ -11,7 +11,9 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.error.SemanticError;
 
-//TODO Comment class
+/**
+ * Class representing a Class in VSOP.
+ */
 
 public class VSOPClass extends VSOPType {
 	public VSOPClass superClass;
@@ -70,6 +72,11 @@ public class VSOPClass extends VSOPType {
 		return list;
 	}
 
+	/**
+	* Check if this class is an ancestor of a given class.
+	* @param c - VSOPClass of the potential child
+	* @return Returns true if this class is an ancestor of the given class.
+	*/
 	public boolean isAncestor(VSOPClass c) {
 		if (this == c)
 			return true;
@@ -79,6 +86,10 @@ public class VSOPClass extends VSOPType {
 		return isAncestor(c.superClass);
 	}
 
+	/**
+	* Check the field inheritance of the class.
+	* @return Returns a Semantic error if the check reports an error.
+	*/
 	public List<SemanticError> checkFieldInheritance() {
 		List<SemanticError> errors = new LinkedList<>();
 
@@ -106,6 +117,10 @@ public class VSOPClass extends VSOPType {
 		return errors;
 	}
 
+	/**
+	* Check the method inheritance of the class.
+	* @return Returns a Semantic error if the check reports an error.
+	*/
 	public List<SemanticError> checkMethodInheritance() {
 		List<SemanticError> errors = new LinkedList<>();
 
@@ -138,6 +153,10 @@ public class VSOPClass extends VSOPType {
 		return errors;
 	}
 
+	/**
+	* Check the cyclic inheritance of the class.
+	* @return Returns a Semantic error if the check reports an error.
+	*/
 	public SemanticError checkCyclicInheritance() {
 		Map<String, VSOPClass> map = new HashMap<>();
 
@@ -169,6 +188,12 @@ public class VSOPClass extends VSOPType {
 		return String.format("VSOPClass(%s)", id);
 	}
 
+	/**
+	* Get the common ancestor of two classes.
+	* @param c1 - first VSOPClass.
+	* @param c2 - second VSOPClass.
+	* @return Returns the common ancestor of the two classes.
+	*/
 	public static VSOPClass commonAncestor(VSOPClass c1, VSOPClass c2) {
 		Stack<VSOPClass> s1 = new Stack<>();
 		while (c1 != null) {

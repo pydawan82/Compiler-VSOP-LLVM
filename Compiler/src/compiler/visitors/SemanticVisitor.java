@@ -15,6 +15,7 @@ import compiler.ast.*;
 import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser.*;
 import compiler.util.Pair;
+import compiler.util.Triplet;
 import compiler.util.VariableStack;
 import compiler.vsop.VSOPBinOp;
 import compiler.vsop.VSOPClass;
@@ -35,6 +36,7 @@ public class SemanticVisitor {
 
 	private Map<String, VSOPClass> classMap;
 	private Map<VSOPMethod, ASTExpr> methods = new HashMap<>();
+	private Map<VSOPField, Optional<ASTExpr>> fields = new HashMap<>();
 	private VSOPClass currentClass;
 	private boolean inFieldInit = false;
 
@@ -97,15 +99,15 @@ public class SemanticVisitor {
 	}
 
 	/**
-	 * Proceed to semantic checking of the program
+	 * Proceed to semantic checking of the program. It also create the AST using the Visitor methodology.
 	 * @param ctx - The {@link ProgramContext}
 	 * @return the {@link ASTProgram} corresponding to the given context if there is no error,
 	 * <code>null</code> otherwise.
 	 */
-	public Pair<ASTProgram, Map<VSOPMethod, ASTExpr>> check(ProgramContext ctx) {
+	public Triplet<ASTProgram, Map<VSOPField, Optional<ASTExpr>>, Map<VSOPMethod, ASTExpr>> check(ProgramContext ctx) {
 		ASTProgram program = visitProgram(ctx);
 		if(flushErrorQueue())
-			return new Pair<ASTProgram, Map<VSOPMethod, ASTExpr>>(program, methods);
+			return new Triplet<>(program, fields, methods);
 		
 		return null;
 	}
@@ -152,6 +154,8 @@ public class SemanticVisitor {
 		}
 
 		inFieldInit = false;
+
+		fields.put(field, value);
 
 		return new ASTField(field, value);
 	}
