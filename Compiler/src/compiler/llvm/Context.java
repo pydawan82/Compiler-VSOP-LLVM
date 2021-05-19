@@ -27,7 +27,7 @@ public class Context {
     private final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
     private final Map<String, String> varValue = new HashMap<>();
 
-    private int varCounter = -1;
+    protected int varCounter = -1;
     private String lastValue = "bad";
 
     private int strCounter = -1;
@@ -197,7 +197,7 @@ public class Context {
 
     /**
      * Get the size of a string (LLVM size).
-     * @param str - 
+     * @param str - String you want to know the size of.
      * @return Returns the size of the String.
      */
     private int strSize(String str) {
@@ -206,8 +206,8 @@ public class Context {
     }
 
     /**
-     * 
-     * @return
+     * Get the LLVM code for the declarations of constant strings.
+     * @return Returns the LLVM code for the declarations of constant strings.
      */
     public String stringDeclarations() {
         return String.join(System.lineSeparator(), consStrings);
