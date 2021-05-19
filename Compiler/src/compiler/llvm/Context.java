@@ -178,7 +178,7 @@ public class Context {
     /**
      * Add a new string to the constant string table.
      * @param val - New string to be added.
-     * @return Returns a pair of 
+     * @return Returns a pair of a String (newly added string) and a size (size of the new string).
      */
     public Pair<String, Integer> declareConstString(String val) {
         
@@ -196,9 +196,9 @@ public class Context {
     private Pattern escape = Pattern.compile("\\\\([btnr\"\\\\]|(([0-9]|[a-f]|[A-F])([0-9]|[a-f]|[A-F])))");
 
     /**
-     * 
-     * @param str
-     * @return
+     * Get the size of a string (LLVM size).
+     * @param str - 
+     * @return Returns the size of the String.
      */
     private int strSize(String str) {
         String t = escape.matcher(str).replaceAll("a");

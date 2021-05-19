@@ -36,7 +36,7 @@ public class ASTNew extends ASTExpr {
 
         int vtablePtr = ctx.unnamed();
         String getVTable = assign(vtablePtr, GET(classType, var(objPtr), 0));
-        String store = store(vTableType(type.id), global(vTableName(type.id)), var(vtablePtr));
+        String store = store(type(vTableType(type.id)), global(vTableName(type.id)), var(vtablePtr));
         
         ctx.setLastValue(objPtr);
 
