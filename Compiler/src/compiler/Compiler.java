@@ -178,9 +178,6 @@ public class Compiler {
 	}
 
 	public static void main(String[] args) {
-
-		args = "-i Compiler/vsop-examples/list.vsop".split(" ");
-
 		List<String> argList = Arrays.asList(args);
 
 		int size = argList.size();
