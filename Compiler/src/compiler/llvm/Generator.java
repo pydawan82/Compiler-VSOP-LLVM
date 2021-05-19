@@ -59,7 +59,6 @@ public class Generator {
 
     private void defineClasses() {
         classMap.values().stream()
-                .filter(c -> c != VSOPConstants.OBJECT)
                 .forEach(this::defineClass);
     }
 
@@ -80,7 +79,7 @@ public class Generator {
         out.println(typeDef);
 
         List<String> args = clazz.methodList().stream()
-                .map(this::toLLVMType)
+                .map(Generator::toLLVMType)
                 .toList();
 
         String vTableDef = defStruct(vTableName, args);
@@ -104,14 +103,30 @@ public class Generator {
         throw new CompilationException("Unhandled type case");
     }
 
-    private String toLLVMType(VSOPMethod method) {
+    public static String toRawLLVMType(VSOPType type) {
+        if(type instanceof VSOPClass clazz)
+            return type(classId(clazz.id));
+        
+        if(type == VSOPConstants.BOOL)
+            return BOOL;
+        
+        if(type == VSOPConstants.INT32)
+            return INT32;
+
+        if(type == VSOPConstants.STRING)
+            return STRING;
+
+        throw new CompilationException("Unhandled type case");
+    }
+
+    public static String toLLVMType(VSOPMethod method) {
         String returnType = toLLVMType(method.returnType);
         List<String> args = argsToLLVMType(method);
 
         return function(returnType, args);
     }
 
-    private List<String> argsToLLVMType(VSOPMethod method) {
+    private static List<String> argsToLLVMType(VSOPMethod method) {
         List<String> args = method.args.stream()
                 .map(f -> f.type)
                 .map(Generator::toLLVMType)
@@ -124,7 +139,6 @@ public class Generator {
 
     private void declareVTables() {
         classMap.values().stream()
-                .filter(c -> c != VSOPConstants.OBJECT)
                 .forEach(this::declareVTable);
     }
 
@@ -142,9 +156,12 @@ public class Generator {
 
     private void declareFunctions() {
         for(VSOPClass parent: classMap.values()) {
+            if(parent == VSOPConstants.OBJECT)
+                continue;
+                
             for(VSOPMethod method: parent.methodList()) {
 
-                if(method.getParent() == VSOPConstants.OBJECT)
+                if(method.getParent() != parent)
                     continue;
 
                 ASTExpr body = methods.get(method);
@@ -159,13 +176,20 @@ public class Generator {
         String returnType = toLLVMType(method.returnType);
         String id = functionId(method.getParent().id, method.id);
         List<String> args = argsToLLVMType(method);
-        String temp = body.emitLLVM(ctx);
-        String retInstr = ret(ctx.getLastValue());
-        //TODO Faire un beau truc svp merci
-        String bodyStr = indentBlock(temp+System.lineSeparator()+retInstr+System.lineSeparator());
+        String bodyStr = declareBody(ctx, body);
 
         String def = defFunction(returnType, id, args, bodyStr);
         out.println(def);
+        out.println(ctx.stringDeclarations());
+    }
+
+    private String declareBody(Context ctx, ASTExpr body) {
+
+        String temp = body.emitLLVM(ctx);
+        String type = toLLVMType(body.type);
+        String retInstr = ret(type, ctx.getLastValue());
+        String block = String.join(System.lineSeparator(), temp, retInstr);
+        return indentBlock(block+System.lineSeparator());
     }
 
     private String labelPattern = "[0-9]+:\\s*";

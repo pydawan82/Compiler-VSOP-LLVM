@@ -2,8 +2,11 @@ package compiler.llvm;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import compiler.util.Pair;
+
+import static compiler.llvm.LLVMConstants.*;
 
 public final class LLVMFormatter {
     private LLVMFormatter() {}
@@ -40,7 +43,7 @@ public final class LLVMFormatter {
     }
 
     public static String vTableName(String classId) {
-        String format = "%s_vtable";
+        String format = "%s___vtable";
 
         return String.format(format, classId);
     }
@@ -88,7 +91,7 @@ public final class LLVMFormatter {
      * @return a formated function name to use in LLVM source code
      */
     public static String functionId(String clazz, String method) {
-        String format = "%s_%s";
+        String format = "%s__%s";
 
         return String.format(format, clazz, method);
     }
@@ -216,15 +219,77 @@ public final class LLVMFormatter {
         return format.formatted(cond, type, op1, op2);
     }
 
-    public static String ret(String value) {
-        String format = "ret %s";
+    public static String ret(String type, String value) {
+        String format = "ret %s %s";
 
-        return format.formatted(value);
+        return format.formatted(type, value);
     }
 
-    public static String GET(String type, String ptrval, String ty, int idx) {
-        String format = "get elementptr %s, %s* %s, %s %d";
+    public static String GET(String type, String ptrval, int idx) {
+        String format = "getelementptr %s, %s %s, %s %d,%s %d";
 
-        return format.formatted(type, type, ptrval, type, idx);
+        return format.formatted(type, pointerOf(type), ptrval, LLVMConstants.INT32, 0, LLVMConstants.INT32, idx);
+    }
+
+    public static String get(String type, String ptrval, int ... idx) {
+        String format = "getelementptr %s, %s, %s";
+
+        String values = IntStream.of(idx)
+            .mapToObj(i -> INT32+" "+i)
+            .collect(Collectors.joining(", "));
+        
+        return format.formatted(type, ptrval, values);
+    }
+
+    public static String getSize(String type) {
+        String format = "getelementptr %s, %s %s, %s %d";
+        
+        return format.formatted(type, pointerOf(type), NULL, INT32, 1);
+    }
+
+    public static String getString(String var, int size) {
+        String format = "getelementptr inbounds ([%d x i8], [%d x i8]* %s, i64 0, i64 0)";
+        
+        return format.formatted(size, size, var);
+    }
+
+    public static String extractvalue(String type, String value, int ord) {
+        String format = "extractvalue %s %s, %d";
+        return format.formatted(type, type, LLVMConstants.pointerOf(type), value, ord);
+    }
+
+    public static String load(String type, String ptr) {
+        String format = "load %s, %s %s";
+
+        return format.formatted(type, LLVMConstants.pointerOf(type), ptr);
+    }
+
+    public static String store(String type, String value, String ptr) {
+        String format = "store %s %s, %s %s";
+
+        return format.formatted(type, value, LLVMConstants.pointerOf(type), ptr);
+    }
+
+    public static String alloca(String type) {
+        String format = "alloca %s";
+
+        return format.formatted(type);
+    }
+
+    public static String malloc(String size) {
+        String malloc = "@malloc";
+        return call(pointerOf(integer(8)), malloc, size);
+    }
+
+    public static String ptrtoint(String type, String var, String intType) {
+        String format = "ptrtoint %s %s to %s";
+
+        return format.formatted(type, var, intType);
+    }
+
+    public static String bitcast(String fromType, String var, String toType) {
+        String format = "bitcast %s %s to %s";
+
+        return format.formatted(fromType, var, toType);
     }
 }

@@ -3,13 +3,10 @@ package compiler.ast;
 import java.io.PrintStream;
 
 import compiler.llvm.Context;
-import compiler.llvm.Generator;
-import compiler.llvm.LLVMConstants;
-import compiler.vsop.VSOPConstants;
 import compiler.vsop.VSOPType;
 
-import static compiler.llvm.LLVMFormatter.*;
 import static compiler.vsop.VSOPConstants.*;
+import static compiler.llvm.LLVMFormatter.*;
 
 public class ASTLiteral extends ASTExpr {
     
@@ -26,11 +23,12 @@ public class ASTLiteral extends ASTExpr {
     @Override
     public String emitLLVM(Context ctx) {
         String val;
-        if(type == STRING)
-            val = LLVMConstants.stringLiteral(value);
-        else
+        if(type == STRING) {
+            var pair = ctx.declareConstString(value);
+            val = getString(pair.first(), pair.second());
+        } else {
             val = value;
-
+        }
         ctx.setLastValue(val);
         return "";
     }

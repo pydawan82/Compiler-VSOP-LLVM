@@ -13,7 +13,7 @@ public class ASTSelf extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
-        ctx.setLastValue(ctx.ordinalOf("self"));
+        ctx.setLastValue(ctx.valueOf("self"));
         
         return "";
     }

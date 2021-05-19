@@ -25,14 +25,16 @@ public class ASTOi extends ASTExpr {
     public String emitLLVM(Context ctx) {
         if(ctx.push(id)) return "";
         
-        String type = Generator.toLLVMType(ctx.method.getParent()).split("\\*")[0];
-        String self = var(ctx.ordinalOf("self"));
+        String classType = Generator.toRawLLVMType(ctx.method.getParent());
+        String self = ctx.valueOf("self");
         String varType = Generator.toLLVMType(this.type);
         int idx = ctx.ordinalOfField(id);
-        
         int ord = ctx.unnamed();
 
-        return assign(ord, GET(type, self, varType, idx));
+        String get = assign(ord, GET(classType, self, idx));
+        String load = assign(ctx.unnamed(), load(varType, var(ord)));
+
+        return String.join(System.lineSeparator(), get, load);
     }
 
     @Override

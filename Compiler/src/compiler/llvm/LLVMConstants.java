@@ -71,7 +71,7 @@ public final class LLVMConstants {
         
         String format = "[%s x %s]";
 
-        return format.formatted(type, length); 
+        return format.formatted(length, type); 
     }
 
     public static String pointerOf(String type) {

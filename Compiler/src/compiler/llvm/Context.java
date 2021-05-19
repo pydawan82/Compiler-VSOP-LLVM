@@ -1,15 +1,20 @@
 package compiler.llvm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import compiler.util.Pair;
 import compiler.vsop.VSOPClass;
 import compiler.vsop.VSOPField;
 import compiler.vsop.VSOPMethod;
 
 import static compiler.llvm.LLVMFormatter.*;
+import static compiler.llvm.LLVMConstants.*;
 
 /**
  * A context class to store any data related to code generation
@@ -26,11 +31,14 @@ public class Context {
     private final Map<String, VSOPClass> classMap;
 
     private final Map<String, Integer> fieldOrdinal = new HashMap<>();
-    private final Map<String, Integer> methodOrdinal = new HashMap<>();
-    private final Map<String, Integer> varOrdinal = new HashMap<>();
+    private final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
+    private final Map<String, String> varValue = new HashMap<>();
 
-    private int varCounter = 0;
+    private int varCounter = -1;
     private String lastValue = "bad";
+
+    private int strCounter = -1;
+    private List<String> consStrings = new ArrayList<>();
 
     public final VSOPMethod method;
 
@@ -44,15 +52,27 @@ public class Context {
         this.method = Objects.requireNonNull(method);
 
         List<VSOPField> fields = method.getParent().fieldList();
-        int ord = 0;
+        int ord = 1;
         for(VSOPField f: fields) {
             fieldOrdinal.put(f.id, ord);
             ord++;
         }
+
+        for(VSOPClass clazz: classMap.values()) {
+            ord = 0;
+            for(VSOPMethod m: clazz.methodList()) {
+                methodOrdinal.put(m, ord);
+                ord++;
+            }
+        }
         
+        //Adding function variables to scope
         updateVariable(SELF);
         for(VSOPField arg: method.args)
             updateVariable(arg.id);
+        
+        //Skipping function label
+        unnamed();
     }
 
     public int ordinalOfField(String fieldId) {
@@ -60,32 +80,34 @@ public class Context {
     }
 
     public int ordinalOf(VSOPMethod method) {
-        return methodOrdinal.get(method.id);
+        return methodOrdinal.get(method);
     }
 
     public boolean push(String variable) {
-        int ord = ordinalOf(variable);
-        if(ord != -1) {
-            setLastValue(ord);
-            return true;
+        String value = valueOf(variable);
+        if(value != null) {
+            setLastValue(value);
         }
 
-        return false;
+        return value!=null;
     }
 
-    public int ordinalOf(String variable) {
-        Integer ordinal = varOrdinal.get(variable);
-        
-        if(ordinal == null)
-            return -1;
-
-        return ordinal;
+    public String valueOf(String variable) {
+        return varValue.get(variable);
     }
 
     public int updateVariable(String variable) {
         varCounter++;
-        varOrdinal.put(variable, varCounter);
+        varValue.put(variable, var(varCounter));
         return varCounter;
+    }
+
+    public void setOrdinalOf(String variable, int ord) {
+        varValue.put(variable, var(ord));
+    }
+
+    public void setValueOf(String variable, String value) {
+        varValue.put(variable, value);
     }
 
     public int unnamed() {
@@ -104,5 +126,30 @@ public class Context {
 
     public void setLastValue(String value) {
         lastValue = value;
+    }
+
+    private final String nulChar = "\\00";
+    private final Pattern xescape = Pattern.compile("\\\\x(([0-9]|[a-f]|[A-F])([0-9]|[a-f]|[A-F]))");
+    public Pair<String, Integer> declareConstString(String val) {
+        
+        String constant = xescape.matcher(val.substring(0, val.length()-1)).replaceAll("\\\\$1") + nulChar + '"';
+        
+
+        strCounter++;
+        String var = global(functionId(method.getParent().id, method.id)+".str."+strCounter);
+        int size = strSize(constant);
+        String assign = assign(var, "constant "+array(CHAR, size)+" c"+constant);
+        consStrings.add(assign);
+        return new Pair<>(var, size);
+    }
+
+    private Pattern escape = Pattern.compile("\\\\([btnr\"\\\\]|(([0-9]|[a-f]|[A-F])([0-9]|[a-f]|[A-F])))");
+    private int strSize(String str) {
+        String t = escape.matcher(str).replaceAll("a");
+        return t.length()-2;
+    }
+
+    public String stringDeclarations() {
+        return String.join(System.lineSeparator(), consStrings);
     }
 }

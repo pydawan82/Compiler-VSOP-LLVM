@@ -8,7 +8,6 @@ import java.util.Optional;
 import compiler.llvm.Context;
 import compiler.llvm.Generator;
 import compiler.util.Pair;
-import compiler.util.PrintUtil;
 import compiler.vsop.VSOPConstants;
 import compiler.vsop.VSOPType;
 

@@ -169,6 +169,7 @@ public class SemanticVisitor {
 		ASTBlock block = visitBlock(ctx.block());
 		
 		/*
+		 * TODO Check ça
 		 * /!\ IMPORTANT /!\
 		 */
 		methods.put(method, block);
@@ -292,7 +293,7 @@ public class SemanticVisitor {
 		if (varType != null && !expr.type.canCast(varType))
 			errorQueue.add(new SemanticError(ctx.expr(), "Expression type does not match variable type"));
 
-		return new ASTAss(varType, expr);
+		return new ASTAss(varType, id, expr);
 	}
 
 	private ASTNew visitNew(NewContext ctx) {
@@ -409,7 +410,7 @@ public class SemanticVisitor {
 		ASTExpr in = visitExpr(ctx.ex);
 		varStack.pop(id);
 
-		return new ASTLet(in.type, id, value, in);
+		return new ASTLet(in.type, id, varType, value, in);
 	}
 
 	private ASTOi visitOi(OiContext ctx) {
