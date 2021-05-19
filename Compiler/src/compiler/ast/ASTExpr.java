@@ -11,6 +11,12 @@ public abstract class ASTExpr extends ASTNode {
         this.type = type;
     }
 
+    /**
+     * Emit the LLVM code relative to the node.
+     * @param ctx - A context object that store any data related to code generation
+     * and current context of the VSOP program.
+     * @return a String containing the LLVM code relative to the node.
+     */
     public abstract String emitLLVM(Context ctx);
     
 }

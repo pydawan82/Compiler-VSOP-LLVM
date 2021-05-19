@@ -65,6 +65,13 @@ public class ASTCall extends ASTExpr {
         return String.join(System.lineSeparator(), obj.first(), methodAssign, pre, operation);
     }
 
+    /**
+     * Emit the LLVM code relative to the vTable of the current class.
+     * @param ctx - A context object that store any data related to code generation
+     * and current context of the VSOP program.
+     * @param objPtr - variable pointing on the vTable.
+     * @return the vTable relatvie to the current class in LLVM format.
+     */
     private String loadVTable(Context ctx, String objPtr) {
         int vtablePtrPtr = ctx.unnamed();
         String vtableAssign = assign(vtablePtrPtr, GET(Generator.toRawLLVMType(vsopMethod.getParent()), objPtr, 0));
@@ -83,6 +90,15 @@ public class ASTCall extends ASTExpr {
             );
     }
 
+    /**
+     * Emit the LLVM code for argument arg.
+     * @param ctx - A context object that store any data related to code generation
+     * and current context of the VSOP program.
+     * @param argType - Type to cast to.
+     * @param arg - Argument to emit.
+     * @return Pair of String. The first element is the LLVM code of what must be do before the code related to the argument handling.
+     * The second is the code related to the argument itself.
+     */
     private Pair<String, String> argToLLVM(Context ctx, VSOPType argType, ASTExpr arg) {
         String instr = arg.emitLLVM(ctx);
         String to = toLLVMType(argType);

@@ -37,6 +37,11 @@ public record Pair<A, B>(A first, B second) {
 		return pairs;
 	}
 
+	/**
+	 * Creates a consumer of {@link Pair} from a {@link BiConsumer}
+	 * @param biConsumer - the biconsumer
+	 * @return the consumer
+	 */
 	public Consumer<Pair<A,B>> consumer(BiConsumer<A,B> biConsumer) {
 		return pair -> biConsumer.accept(first(), second());
 	}

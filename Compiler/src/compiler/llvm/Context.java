@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import compiler.util.Pair;
 import compiler.vsop.VSOPClass;
@@ -23,12 +22,6 @@ import static compiler.llvm.LLVMConstants.*;
 public class Context {
 
     private static final String SELF = "self";
-
-    /**
-     * A map from defined class'names to their corresponding {@link VSOPClass}
-     * TODO Probably to be removed
-     */
-    private final Map<String, VSOPClass> classMap;
 
     private final Map<String, Integer> fieldOrdinal = new HashMap<>();
     private final Map<VSOPMethod, Integer> methodOrdinal = new HashMap<>();
@@ -48,7 +41,7 @@ public class Context {
      * @param vars - a map containing the defined variables
      */
     public Context(Map<String, VSOPClass> classMap, VSOPMethod method) {
-        this.classMap = Objects.requireNonNull(classMap);
+        Objects.requireNonNull(classMap);
         this.method = Objects.requireNonNull(method);
 
         List<VSOPField> fields = method.getParent().fieldList();
@@ -75,14 +68,29 @@ public class Context {
         unnamed();
     }
 
+    /**
+     * 
+     * @param fieldId
+     * @return
+     */
     public int ordinalOfField(String fieldId) {
         return fieldOrdinal.get(fieldId);
     }
 
+    /**
+     * 
+     * @param method
+     * @return
+     */
     public int ordinalOf(VSOPMethod method) {
         return methodOrdinal.get(method);
     }
 
+    /**
+     * 
+     * @param variable
+     * @return
+     */
     public boolean push(String variable) {
         String value = valueOf(variable);
         if(value != null) {
@@ -92,44 +100,86 @@ public class Context {
         return value!=null;
     }
 
+    /**
+     * 
+     * @param variable
+     * @return
+     */
     public String valueOf(String variable) {
         return varValue.get(variable);
     }
 
+    /**
+     * 
+     * @param variable
+     * @return
+     */
     public int updateVariable(String variable) {
         varCounter++;
         varValue.put(variable, var(varCounter));
         return varCounter;
     }
 
+    /**
+     * 
+     * @param variable
+     * @param ord
+     */
     public void setOrdinalOf(String variable, int ord) {
         varValue.put(variable, var(ord));
     }
 
+    /**
+     * 
+     * @param variable
+     * @param value
+     */
     public void setValueOf(String variable, String value) {
         varValue.put(variable, value);
     }
 
+    /**
+     * 
+     * @return
+     */
     public int unnamed() {
         varCounter++;
         setLastValue(varCounter);
         return varCounter;
     }
 
+    /**
+     * 
+     * @return
+     */
     public String getLastValue() {
         return lastValue;
     }
 
+    /**
+     * 
+     * @param value
+     */
     public void setLastValue(int value) {
         lastValue = var(value);
     }
 
+    /**
+     * 
+     * @param value
+     */
     public void setLastValue(String value) {
         lastValue = value;
     }
 
     private final String nulChar = "\\00";
     private final Pattern xescape = Pattern.compile("\\\\x(([0-9]|[a-f]|[A-F])([0-9]|[a-f]|[A-F]))");
+    
+    /**
+     * 
+     * @param val
+     * @return
+     */
     public Pair<String, Integer> declareConstString(String val) {
         
         String constant = xescape.matcher(val.substring(0, val.length()-1)).replaceAll("\\\\$1") + nulChar + '"';
@@ -144,11 +194,21 @@ public class Context {
     }
 
     private Pattern escape = Pattern.compile("\\\\([btnr\"\\\\]|(([0-9]|[a-f]|[A-F])([0-9]|[a-f]|[A-F])))");
+
+    /**
+     * 
+     * @param str
+     * @return
+     */
     private int strSize(String str) {
         String t = escape.matcher(str).replaceAll("a");
         return t.length()-2;
     }
 
+    /**
+     * 
+     * @return
+     */
     public String stringDeclarations() {
         return String.join(System.lineSeparator(), consStrings);
     }

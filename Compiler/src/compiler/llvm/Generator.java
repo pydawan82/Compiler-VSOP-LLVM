@@ -24,7 +24,6 @@ public class Generator {
     /**
      * TODO Probably to be removed
      */
-    private final ASTProgram ast;
     private final Map<String, VSOPClass> classMap;
     private final Map<VSOPMethod, ASTExpr> methods;
     private final PrintStream out;
@@ -34,8 +33,7 @@ public class Generator {
      * @param ast - The program tree
      * @param classMap - The map of defined classes
      */
-    public Generator(ASTProgram ast, Map<String, VSOPClass> classMap, Map<VSOPMethod, ASTExpr> methods, PrintStream out) {
-        this.ast = Objects.requireNonNull(ast);
+    public Generator(Map<String, VSOPClass> classMap, Map<VSOPMethod, ASTExpr> methods, PrintStream out) {
         this.classMap = Objects.requireNonNull(classMap);
         this.methods = Objects.requireNonNull(methods);
         this.out = Objects.requireNonNull(out);

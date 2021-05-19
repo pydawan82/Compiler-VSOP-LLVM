@@ -4,7 +4,6 @@ import java.io.PrintStream;
 
 import compiler.llvm.Context;
 import compiler.llvm.LLVMConstants;
-import compiler.llvm.LLVMFormatter;
 
 import static compiler.vsop.VSOPConstants.INT32;
 import static compiler.llvm.LLVMFormatter.*;

@@ -97,6 +97,10 @@ public class Compiler {
 		return true;
 	}
 
+	/**
+	 * Compiles the VSOP file to LLVM IR
+	 * @return <code>true</code> if compilation was successful; <code>false</code> otherwise.
+	 */
 	public boolean compile() {
 		SemanticChecker checker = new SemanticChecker(parser());
 		var result = checker.check();
@@ -106,7 +110,7 @@ public class Compiler {
 			return false;
 		}
 
-		Generator generator = new Generator(result.second(), result.first(), result.third(), out);
+		Generator generator = new Generator(result.first(), result.third(), out);
 		generator.emitLLVM();
 
 		return true;

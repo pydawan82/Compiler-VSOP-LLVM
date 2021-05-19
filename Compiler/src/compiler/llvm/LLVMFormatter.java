@@ -8,19 +8,37 @@ import compiler.util.Pair;
 
 import static compiler.llvm.LLVMConstants.*;
 
+/**
+ * A class used to format instructions of LLVM IR
+ */
 public final class LLVMFormatter {
     private LLVMFormatter() {}
 
+    /**
+     * Creates an empty comment
+     * @return a formatted empty comment
+     */
     public static String comment() {
         return comment("");
     }
 
+    /**
+     * Creates a comment in LLVM IR. Comment should not contain any line return.
+     * @param comment the comment to be written
+     * @return a formatted comment
+     */
     public static String comment(String comment) {
         String format = "; %s";
 
         return String.format(format, comment);
     }
 
+    /**
+     * Creates a 'section' comment. It is just a comment but with an empty comment
+     * and bottom.
+     * @param section - the name of the section
+     * @return a 3 lines comment with the name of the section
+     */
     public static String section(String section) {
         String format = """
         %s
@@ -30,30 +48,55 @@ public final class LLVMFormatter {
         return String.format(format, comment(), comment(section), comment());
     }
 
+    /**
+     * A formatted version of the {@link compiler.vsop.VSOPClass} id.
+     * @param classId - the id of a class
+     * @return a formatted version of the class id;
+     */
     public static String classId(String classId) {
         String format = "%s";
 
         return String.format(format, classId);
     }
 
+    /**
+     * 
+     * @param classId - the id of a class 
+     * @return a formatted version of the vTable type
+    */
     public static String vTableType(String classId) {
         String format = "%sVTable";
 
         return String.format(format, classId);
     }
 
+    /**
+     * 
+     * @param classId - the id of a class
+     * @return a formatted version of the vTable name
+     */
     public static String vTableName(String classId) {
         String format = "%s___vtable";
 
         return String.format(format, classId);
     }
 
+    /**
+     * 
+     * @param id - the id of a variable
+     * @return A formatted version of the variable reference
+     */
     public static String var(String id) {
         String format = "%%%s";
 
         return String.format(format, id);
     }
 
+    /**
+     * 
+     * @param ord
+     * @return
+     */
     public static String var(int ord) {
         String format = "%%%d";
 

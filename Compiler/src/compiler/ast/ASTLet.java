@@ -1,13 +1,10 @@
 package compiler.ast;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import compiler.llvm.Context;
 import compiler.llvm.Generator;
-import compiler.llvm.LLVMFormatter;
 import compiler.vsop.VSOPType;
 
 import static compiler.llvm.LLVMFormatter.*;
@@ -36,12 +33,20 @@ public class ASTLet extends ASTExpr {
 
     @Override
     public String emitLLVM(Context ctx) {
+        String prevVal = ctx.valueOf(id);
         String assign = ass(ctx);
         String expr = in.emitLLVM(ctx);
-
+        ctx.setValueOf(id, prevVal);
         return String.join(System.lineSeparator(), assign, expr);
     }
 
+
+    /**
+     * Emit the LLVM code related to the assignment of the Let node.
+     * @param ctx - A context object that store any data related to code generation
+     * and current context of the VSOP program.
+     * @return Returns the String related to the assignement of the Let in LLVM.
+     */
     private String ass(Context ctx) {
 
         if(value.isPresent()) {
