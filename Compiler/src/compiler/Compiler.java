@@ -157,12 +157,12 @@ public class Compiler {
 		return true;
 	}
 
-	private static final String cmdFormat = "clang %s";
-	private static String compileCmd(String fileName) {
-		return cmdFormat.formatted(fileName);
+	private static final String cmdFormat = "clang %s -o %s";
+	private static String compileCmd(String fileName, String output) {
+		return cmdFormat.formatted(fileName, output);
 	}
 
-	public boolean compileBin(String llName) throws IOException, InterruptedException {
+	public boolean compileBin(String llName, String outName) throws IOException, InterruptedException {
 
 		if(!compile())
 			return false;
@@ -171,7 +171,7 @@ public class Compiler {
 			out.close();
 
 		Runtime runtime = Runtime.getRuntime();
-		Process clang = runtime.exec(compileCmd(llName));
+		Process clang = runtime.exec(compileCmd(llName, outName));
 		
 		int ret = clang.waitFor();
 		return ret == SUCCESS;
@@ -207,11 +207,12 @@ public class Compiler {
 					System.exit(FAIL);
 				}
 
-				String llName = matcher.group(1) + extension;
+				String outName = matcher.group(1);
+				String llName = outName + extension;
 				PrintStream out = new PrintStream(llName);
 				Compiler c = new Compiler(fileName, out);
 
-				success = c.compileBin(llName);
+				success = c.compileBin(llName, outName);
 			} else {
 
 				String fileName = argList.get(1);
@@ -234,7 +235,7 @@ public class Compiler {
 		} catch(InterruptedException e) {
 			System.exit(CLANG_FAIL);
 		} catch(Exception e) {
-			System.err.print(e.getMessage());
+			System.err.println(e.getMessage());
 			System.exit(FAIL);
 		}
 	}
