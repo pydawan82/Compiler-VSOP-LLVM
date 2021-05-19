@@ -2,7 +2,11 @@ package compiler;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import compiler.error.LexicalError;
 import compiler.error.SemanticError;
@@ -11,21 +15,27 @@ import compiler.llvm.Generator;
 import compiler.parsing.VSOPLexer;
 import compiler.parsing.VSOPParser;
 
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 /**
  * A VSOP to LLVM compiler
  */
 public class Compiler {
 
-	private static int SUCCESS = 0;
-	private static int FAIL = -1;
-	private static int IO_ERROR = -2;
+	private static final int SUCCESS = 0;
+	private static final int FAIL = -1;
+	private static final int IO_ERROR = -2;
+	private static final int CLANG_FAIL = -3;
 
 	private String fileName;
 	private PrintStream out;
+	private boolean mustCloseOut = false;
 
 	/**
 	 * Creates a new Compiler that will comile the given file.
@@ -33,13 +43,19 @@ public class Compiler {
 	 * @param fileName - The name of the file
 	 * @throws IOException if an I/O error occurs.
 	 */
-	public Compiler(String fileName, PrintStream out) throws IOException {
+	public Compiler(String fileName, PrintStream out) {
 		this.fileName = fileName;
 		this.out = Objects.requireNonNull(out);
+
+		mustCloseOut = out!=System.out;
 
 		LexicalError.FILE_NAME = fileName;
 		SyntaxError.FILE_NAME = fileName;
 		SemanticError.FILE_NAME = fileName;
+	}
+
+	public Compiler(String fileName) {
+		this(fileName, System.out);
 	}
 
 	public CharStream input() {
@@ -52,12 +68,37 @@ public class Compiler {
 		}
 	}
 
-	public VSOPLexer lexer() {
+	public VSOPLexer rawLexer() {
 		return new VSOPLexer(input());
 	}
 
+	public VSOPLexer lexer() {
+		VSOPLexer lexer = rawLexer();
+		lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
+		lexer.addErrorListener(new BaseErrorListener() {
+			@Override
+			public void syntaxError(Recognizer<?, ?> r, Object o, int ln, int col, String msg, RecognitionException e) {
+				System.err.println(new LexicalError(ln, col, msg));
+			}
+		});
+
+		return lexer;
+	}
+
+	public VSOPParser rawParser() {
+		return new VSOPParser(new CommonTokenStream(rawLexer()));
+	}
+
 	public VSOPParser parser() {
-		return new VSOPParser(new CommonTokenStream(lexer()));
+		VSOPParser parser = rawParser();
+		parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
+		parser.addErrorListener(new BaseErrorListener() {
+			@Override
+			public void syntaxError(Recognizer<?, ?> r, Object o, int ln, int col, String msg, RecognitionException e) {
+                System.err.println(new SyntaxError(ln, col, msg));
+			}
+		});
+		return parser;
 	}
 
 	/**
@@ -68,7 +109,7 @@ public class Compiler {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean lex() {
-		return new LexicalAnalyzer(lexer()).lex();
+		return new LexicalAnalyzer(rawLexer()).lex();
 	}
 
 	/**
@@ -78,7 +119,7 @@ public class Compiler {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean parse() {
-		return new SyntaxAnalyzer(parser()).parse();
+		return new SyntaxAnalyzer(rawParser()).parse();
 	}
 
 	/**
@@ -116,28 +157,83 @@ public class Compiler {
 		return true;
 	}
 
-	public static void main(String[] args) throws IOException {
+	private static final String cmdFormat = "clang %s";
+	private static String compileCmd(String fileName) {
+		return cmdFormat.formatted(fileName);
+	}
 
-		args = "-o Compiler/vsop-examples/list.vsop".split(" ");
+	public boolean compileBin(String llName) throws IOException, InterruptedException {
 
-		if (args.length != 2) {
-			System.err.println("Usage: vsopc [-l|-p|-c] *input_file*");
+		if(!compile())
+			return false;
+
+		if(mustCloseOut)
+			out.close();
+
+		Runtime runtime = Runtime.getRuntime();
+		Process clang = runtime.exec(compileCmd(llName));
+		
+		int ret = clang.waitFor();
+		return ret == SUCCESS;
+	}
+
+	public static void main(String[] args) {
+
+		List<String> argList = Arrays.asList(args);
+
+		int size = argList.size();
+
+		if (!(size>=1 && size <= 3)) {
+			System.err.println("Usage: vsopc [-e]? [-l|-p|-c|-i]? [input_file]");
 			System.exit(-1);
 			return;
 		}
 
-		String fileName = args[1];
-		Compiler c = new Compiler(fileName, new PrintStream("output/program.ll"));
+		if(argList.contains("-e")) {
+			System.out.println("extensions are not supported");
+			System.exit(FAIL);
+		}
+		
+		try {
+			boolean success;
 
-		boolean success = switch (args[0]) {
-			case "-l" -> c.lex();
-			case "-p" -> c.parse();
-			case "-c" -> c.check();
-			case "-o" -> c.compile();
-			default -> false;
-		};
+			if(size == 1) {
+				Pattern pattern = Pattern.compile("(.*)\\.vsop");
+				String extension = ".ll";
 
-		System.out.println("Sucess:" + success);
-		System.exit(success ? SUCCESS : FAIL);
+				String fileName = argList.get(0);
+				Matcher matcher = pattern.matcher(fileName);
+				if(!matcher.matches()) {
+					System.err.println("Expected a filename of format "+pattern.pattern());
+					System.exit(FAIL);
+				}
+
+				String llName = matcher.group(1) + extension;
+				PrintStream out = new PrintStream(llName);
+				Compiler c = new Compiler(fileName, out);
+
+				success = c.compileBin(llName);
+			} else {
+
+				String fileName = argList.get(1);
+			
+				Compiler c = new Compiler(fileName);
+
+				success = switch (args[0]) {
+					case "-l" -> c.lex();
+					case "-p" -> c.parse();
+					case "-c" -> c.check();
+					case "-i" -> c.compile();
+					default -> false;
+				};
+			}
+
+			System.exit(success ? SUCCESS : FAIL);
+			
+		} catch(IOException e) {
+			System.exit(IO_ERROR);
+		} catch(InterruptedException e) {
+			System.exit(CLANG_FAIL);
+		}
 	}
 }

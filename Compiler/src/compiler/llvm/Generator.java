@@ -30,10 +30,7 @@ import static compiler.llvm.LLVMFormatter.*;
 public class Generator {
 
     private static final String RUNTIME = "runtime/runtime.ll";
-
-    /**
-     * TODO Probably to be removed
-     */
+    
     private final Map<String, VSOPClass> classMap;
     private final Map<VSOPField, Optional<ASTExpr>> fields;
     private final Map<VSOPMethod, ASTExpr> methods;

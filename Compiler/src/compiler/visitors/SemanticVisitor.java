@@ -14,7 +14,6 @@ import java.util.function.Function;
 import compiler.ast.*;
 import compiler.error.SemanticError;
 import compiler.parsing.VSOPParser.*;
-import compiler.util.Pair;
 import compiler.util.Triplet;
 import compiler.util.VariableStack;
 import compiler.vsop.VSOPBinOp;
@@ -172,10 +171,6 @@ public class SemanticVisitor {
 
 		ASTBlock block = visitBlock(ctx.block());
 		
-		/*
-		 * TODO Check ça
-		 * /!\ IMPORTANT /!\
-		 */
 		methods.put(method, block);
 
 		for (var field : method.args)
