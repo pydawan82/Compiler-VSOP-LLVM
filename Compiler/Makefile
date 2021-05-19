@@ -12,6 +12,8 @@ BIN = bin
 ANTLR = antlr-4.9.1-complete.jar
 MAIN_CLASS = Compiler
 
+RUNTIME = compiler/llvm/runtime.ll
+
 .PHONY: all install-tools clean
 
 all: vsopc
@@ -25,6 +27,8 @@ vsopc:
 	mv $(TARGET)/$(PACKAGE_DIR)/$(GRAMMARS)/* $(TARGET)/$(PACKAGE_DIR)
 
 	javac -cp $(ANTLR) -d $(BIN) -sourcepath $(TARGET):$(SRC) $(SRC)/compiler/$(MAIN_CLASS).java
+
+	cp $(SRC)/$(RUNTIME) $(BIN)/$(RUNTIME)
 
 	cat vsopc.sh > vsopc
 	chmod u+x $(COMPILER)
