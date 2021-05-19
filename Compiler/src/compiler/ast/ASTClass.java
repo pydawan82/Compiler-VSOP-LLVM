@@ -37,7 +37,7 @@ public class ASTClass extends ASTNode {
 
             field.print(pStream, indent+1);
 
-            if (i != fields.size()-1) {
+            if (i != fields.size()) {
                 pStream.print(",");
             }
         }
