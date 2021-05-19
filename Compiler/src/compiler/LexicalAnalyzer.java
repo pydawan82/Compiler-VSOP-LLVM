@@ -45,7 +45,7 @@ public class LexicalAnalyzer {
 		lexer.addErrorListener(new BaseErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> r, Object o, int ln, int col, String msg, RecognitionException e) {
-				errorQueue.add(new LexicalError(ln, col, msg));
+				errorQueue.add(new LexicalError(ln, col+1, msg));
 			}
 		});
     }

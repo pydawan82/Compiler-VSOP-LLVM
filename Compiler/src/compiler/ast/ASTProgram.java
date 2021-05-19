@@ -19,9 +19,12 @@ public class ASTProgram extends ASTNode {
         pStream.print('[');
 
 		int i = 0;
+        int size = classes.size();
 		for (var clazz : classes) {
+            i++;
+
 			clazz.print(pStream, indent+1);
-			if (i != classes.size()) {
+			if (i != size) {
 				pStream.println(',');
                 indent(pStream, indent);
 			}

@@ -78,7 +78,7 @@ public class Compiler {
 		lexer.addErrorListener(new BaseErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> r, Object o, int ln, int col, String msg, RecognitionException e) {
-				System.err.println(new LexicalError(ln, col, msg));
+				System.err.println(new LexicalError(ln, col+1, msg));
 			}
 		});
 
@@ -95,7 +95,7 @@ public class Compiler {
 		parser.addErrorListener(new BaseErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> r, Object o, int ln, int col, String msg, RecognitionException e) {
-                System.err.println(new SyntaxError(ln, col, msg));
+                System.err.println(new SyntaxError(ln, col+1, msg));
 			}
 		});
 		return parser;
@@ -179,6 +179,8 @@ public class Compiler {
 
 	public static void main(String[] args) {
 
+		args = "-i Compiler/vsop-examples/list.vsop".split(" ");
+
 		List<String> argList = Arrays.asList(args);
 
 		int size = argList.size();
@@ -234,6 +236,9 @@ public class Compiler {
 			System.exit(IO_ERROR);
 		} catch(InterruptedException e) {
 			System.exit(CLANG_FAIL);
+		} catch(Exception e) {
+			System.err.print(e.getMessage());
+			System.exit(FAIL);
 		}
 	}
 }

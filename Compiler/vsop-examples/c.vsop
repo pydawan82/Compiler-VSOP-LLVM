@@ -1,3 +1,2 @@
-class Main extends Object {
-	main(): int32 {0}
+class fistLetterIsNotUpperCase {
 }

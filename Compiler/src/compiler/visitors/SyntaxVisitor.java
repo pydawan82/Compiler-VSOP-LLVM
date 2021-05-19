@@ -86,7 +86,7 @@ public class SyntaxVisitor {
 
 	public void visitClazz(ClazzContext ctx) {
 		tab++;
-
+		
 		out.printf("Class(%s, %s, ", ctx.id.getText(), ctx.idext != null ? ctx.idext.getText() : defaultClazz);
 
 		visitClassBody(ctx.classBody());

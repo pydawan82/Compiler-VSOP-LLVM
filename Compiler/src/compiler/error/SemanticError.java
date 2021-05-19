@@ -13,7 +13,7 @@ public record SemanticError(int ln, int col, String message) {
 	}
 
 	public SemanticError(Token token, String message) {
-		this(token.getLine(), token.getCharPositionInLine(), message);
+		this(token.getLine(), token.getCharPositionInLine()+1, message);
 	}
 
 	public SemanticError(ParserRuleContext ctx, String message) {
@@ -31,6 +31,6 @@ public record SemanticError(int ln, int col, String message) {
 
 	@Override
 	public String toString() {
-		return String.format("%s:%d:%d: semantic error: %s", FILE_NAME, ln, col + 1, message);
+		return String.format("%s:%d:%d: semantic error: %s", FILE_NAME, ln, col, message);
 	}
 }

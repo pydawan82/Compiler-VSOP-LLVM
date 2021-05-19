@@ -1,9 +1,9 @@
 package compiler.llvm;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +29,12 @@ import static compiler.llvm.LLVMFormatter.*;
  */
 public class Generator {
 
-    private static final String RUNTIME = "runtime/runtime.ll";
+    private static final String RUNTIME = "runtime.ll";
+    private static Scanner getRuntimeScanner() throws IOException {
+        URL url = Generator.class.getResource(RUNTIME);
+        InputStream istream = url.openStream();
+        return new Scanner(istream);
+    }
     
     private final Map<String, VSOPClass> classMap;
     private final Map<VSOPField, Optional<ASTExpr>> fields;
@@ -388,14 +393,14 @@ public class Generator {
      * Emit the LLVM code relative to the runtime resources (Object.ll).
      */
     private void declareRuntime() {
-        try(Scanner scanner = new Scanner(new File(RUNTIME))) {
+        try(Scanner scanner = getRuntimeScanner()) {
             scanner.useDelimiter("\n");
             scanner.forEachRemaining(out::println);
             IOException e = scanner.ioException();
             if(e != null) {
                 throw new CompilationException("Failed to append runtime", e);
             }
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new CompilationException("Failed to append runtime", e);
         }
     }

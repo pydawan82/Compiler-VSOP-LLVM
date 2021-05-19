@@ -37,7 +37,7 @@ public class SyntaxAnalyzer {
 		parser.addErrorListener(new BaseErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> r, Object o, int ln, int col, String msg, RecognitionException e) {
-                errorQueue.add(new SyntaxError(ln, col, msg));
+                errorQueue.add(new SyntaxError(ln, col+1, msg));
 			}
 		});
     }
@@ -64,8 +64,11 @@ public class SyntaxAnalyzer {
      * <code>false</code> otherwise.
      */
     public boolean parse() {
+
 		SyntaxVisitor visitor = new SyntaxVisitor(out);
-        visitor.visitProgram(parser.program());
+        try {
+            visitor.visitProgram(parser.program());
+        } catch(Exception e) {}
 
 		return flushErrorQueue();
     }
