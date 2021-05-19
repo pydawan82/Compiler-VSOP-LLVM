@@ -94,8 +94,8 @@ public final class LLVMFormatter {
 
     /**
      * 
-     * @param ord
-     * @return
+     * @param ord - the id of a variable
+     * @return A formatted version of the variable reference
      */
     public static String var(int ord) {
         String format = "%%%d";
@@ -103,24 +103,44 @@ public final class LLVMFormatter {
         return String.format(format, ord);
     }
 
-    public static String label(String ord) {
+    /**
+     * 
+     * @param name - the id of a label
+     * @return A label in LLVM IR
+     */
+    public static String label(String name) {
         String format = "%s:";
 
-        return format.formatted(ord);
+        return format.formatted(name);
     }
 
+    /**
+     * 
+     * @param ord - the id of a label
+     * @return A label in LLVM IR
+     */
     public static String label(int ord) {
         String format = "%d:";
 
         return format.formatted(ord);
     }
 
+    /**
+     * 
+     * @param var - the id of a global variable
+     * @return The formatted version of this global variable
+     */
     public static String global(String var) {
         String format = "@%s";
 
         return String.format(format, var);
     }
 
+    /**
+     * 
+     * @param type - a class type
+     * @return The formatted version of the reference to this type
+     */
     public static String type(String type) {
         String format = "%%%s";
 

@@ -33,12 +33,20 @@ public class ASTNew extends ASTExpr {
        
         int objPtr = ctx.unnamed();
         String cast = assign(objPtr, bitcast(pointerOf(integer(8)), var(rawObjPtr), pointerOf(classType)));
+
+        int vtablePtr = ctx.unnamed();
+        String getVTable = assign(vtablePtr, GET(classType, var(objPtr), 0));
+        String store = store(vTableType(type.id), global(vTableName(type.id)), var(vtablePtr));
         
+        ctx.setLastValue(objPtr);
+
         return String.join(System.lineSeparator(), 
                 size,
                 sizeI,
                 malloc,
-                cast
+                cast,
+                getVTable,
+                store
             );
     }
 

@@ -69,27 +69,27 @@ public class Context {
     }
 
     /**
-     * 
-     * @param fieldId
-     * @return
+     * Get the ordinal of the field passed as argument.
+     * @param fieldId Id of the field (String)
+     * @return Returns the ordinal of the field.
      */
     public int ordinalOfField(String fieldId) {
         return fieldOrdinal.get(fieldId);
     }
 
     /**
-     * 
-     * @param method
-     * @return
+     * Get the ordinal of the method passed as argument.
+     * @param method - Method (VSOPMethod).
+     * @return Returns the ordinal of the method.
      */
     public int ordinalOf(VSOPMethod method) {
         return methodOrdinal.get(method);
     }
 
     /**
-     * 
-     * @param variable
-     * @return
+     * Push the value of the variable on the lastValue variable.
+     * @param variable - Variable as String.
+     * @return A boolean stating if the push has succeed or not.
      */
     public boolean push(String variable) {
         String value = valueOf(variable);
@@ -101,18 +101,18 @@ public class Context {
     }
 
     /**
-     * 
-     * @param variable
-     * @return
+     * Get the value of variable.
+     * @param variable - the variable as String.
+     * @return Returns the value of the variable as String.
      */
     public String valueOf(String variable) {
         return varValue.get(variable);
     }
 
     /**
-     * 
-     * @param variable
-     * @return
+     * Add the variable to the varValue map.
+     * @param variable - Variable to update.
+     * @return Returns the variable counter.
      */
     public int updateVariable(String variable) {
         varCounter++;
@@ -121,26 +121,26 @@ public class Context {
     }
 
     /**
-     * 
-     * @param variable
-     * @param ord
+     * Set the ordinal of a variable to the ord variable.
+     * @param variable - Variable to change the ordinal of.
+     * @param ord - New ordinal of the variable.
      */
     public void setOrdinalOf(String variable, int ord) {
         varValue.put(variable, var(ord));
     }
 
     /**
-     * 
-     * @param variable
-     * @param value
+     * Set the value of a given variable to a given value
+     * @param variable - Variable to be changed.
+     * @param value - New value of the variable.
      */
     public void setValueOf(String variable, String value) {
         varValue.put(variable, value);
     }
 
     /**
-     * 
-     * @return
+     * Get the next unused ordinal.
+     * @return Returns the next unused ordinal.
      */
     public int unnamed() {
         varCounter++;
@@ -149,24 +149,24 @@ public class Context {
     }
 
     /**
-     * 
-     * @return
+     * Get the last value.
+     * @return Returns the last value.
      */
     public String getLastValue() {
         return lastValue;
     }
 
     /**
-     * 
-     * @param value
+     * Set the last value to a given value (int).
+     * @param value - New value of lastValue.
      */
     public void setLastValue(int value) {
         lastValue = var(value);
     }
 
     /**
-     * 
-     * @param value
+     * Set the last value to a given value (String).
+     * @param value - New value of lastValue.
      */
     public void setLastValue(String value) {
         lastValue = value;
@@ -176,9 +176,9 @@ public class Context {
     private final Pattern xescape = Pattern.compile("\\\\x(([0-9]|[a-f]|[A-F])([0-9]|[a-f]|[A-F]))");
     
     /**
-     * 
-     * @param val
-     * @return
+     * Add a new string to the constant string table.
+     * @param val - New string to be added.
+     * @return Returns a pair of 
      */
     public Pair<String, Integer> declareConstString(String val) {
         
