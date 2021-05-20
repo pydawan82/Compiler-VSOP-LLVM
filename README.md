@@ -1,23 +1,36 @@
 # Compiler-VSOP-LLVM
 
 **Project from the INFO0085-1 Compilers course at ULiege**
+A VSOP Compiler written in JAVA
 
-## Part 1: Lexer
+## Usage
+```bash
+vsopc [-e]? [-l|-p|-c|-i]? [input_file]
+```
 
-**Objectives:**
-+ ✅ Generate a token stream
-+ ✅ Output tokens on the standard output stream
-+ ✅ Output lexing errors on the error stream
-+ ✅ Test multiple vsop program samples
-+ ✅ Comment code
-+ ✅ Submit code
+## -l: Lexing
++ ✅ Outputs tokens on the standard output
++ ✅ Outputs lexical errors on the standard error
 
-## Part 2: Parser
+## -p: Parsing
++ ✅ Outputs parse tree on the standard output
++ ✅ Outputs lexical and syntax errors on the standard error
 
-**Objectives**
-+ ✅ Generate the syntax tree
-+ ✅ Generate the syntax errors
-+ ✅ Test code
-+ ✅ Visitor
-+ ✅ Comment code
-+ ✅ Submit code
+## -c: Semantic checking
++ ✅ Outputs the anotated AST on the standard output
++ ✅ Outputs lexical, syntax and semantical errors on the standard error
++ ❌ Unstability might raise from syntax errors
+
+## -i: LLVM IR Generation
++ ✅ Outputs the generated LLVM IR on the standard output
++ ✅ Outputs errors on the standard error
++ ❌ Generation is sometimes buggy and might not be perfect
+
+## -e: Extension
++ ❌ No extensions supported yet
+
+
+## Compilation
++ ✅ Generates an LLVM IR file
++ ✅ Compiles the file with CLang
++ ✅ VSOP errors and CLang errors are printed on the standard error
