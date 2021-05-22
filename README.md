@@ -15,6 +15,7 @@ vsopc [-e]? [-l|-p|-c|-i]? [input_file]
 ## -p: Parsing
 + ✅ Outputs parse tree on the standard output
 + ✅ Outputs lexical and syntax errors on the standard error
++ ❌ Cannot tell if a given file contains only a program and nothing else. If the file is parasited, the compiler will ignore some part of the file.
 
 ## -c: Semantic checking
 + ✅ Outputs the anotated AST on the standard output
