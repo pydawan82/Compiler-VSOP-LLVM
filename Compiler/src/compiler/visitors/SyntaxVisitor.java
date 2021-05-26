@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 
 import compiler.parsing.VSOPParser.*;
 
+import static compiler.util.PrintUtil.*;
+
 /**
  * A class that prints the parse tree of a given context.
  */
@@ -44,8 +46,7 @@ public class SyntaxVisitor {
 		map.put(LitContext.class, (ExprContext c) -> visitLit((LitContext) c));
 		map.put(SelfContext.class, (ExprContext c) -> visitSelf((SelfContext) c));
 		map.put(UnitContext.class, (ExprContext c) -> visitUnit((UnitContext) c));
-		map.put(BraceExprContext.class,
-				(ExprContext c) -> visitBraceExpr((BraceExprContext) c));
+		map.put(BraceExprContext.class, (ExprContext c) -> visitBraceExpr((BraceExprContext) c));
 		map.put(BlContext.class, (ExprContext c) -> visitBl((BlContext) c));
 	}
 
@@ -58,33 +59,34 @@ public class SyntaxVisitor {
 		}
 	}
 
+	private static String listFormat = "[%p]";
+	private static String listSep = ","+System.lineSeparator();
+	/**
+	 * 
+	 * @param printers
+	 */
+	private void printList(PrintStream out, List<Consumer<PrintStream>> printers) {
+		format(out, listFormat, (stream) -> join(stream, listSep, printers));
+	}
+
 
 	/**
 	 * Print out the AST for the -c options of the compiler using the visitor methodology.
 	 * @param ctx - the program context.
 	 */
-	public void visitProgram(ProgramContext ctx) {
+	public void visitProgram(ProgramContext ctx, PrintStream out) {
 		tab++;
 
-		List<ClazzContext> clazzList = ctx.clazz();
-		out.print('[');
+		List<Consumer<PrintStream>> printers = ctx.clazz().stream()
+				.map(c -> (Consumer<PrintStream>) (stream -> visitClazz(c, stream)))
+				.toList();
 
-		int i = 0;
-		for (var clazz : clazzList) {
-			i++;
-			visitClazz(clazz);
-			if (i != clazzList.size()) {
-				out.println(',');
-				printTab();
-			}
-		}
-
-		out.println(']');
+		printList(out, printers);
 
 		tab--;
 	}
 
-	public void visitClazz(ClazzContext ctx) {
+	public void visitClazz(ClazzContext ctx, PrintStream out) {
 		tab++;
 		
 		out.printf("Class(%s, %s, ", ctx.id.getText(), ctx.idext != null ? ctx.idext.getText() : defaultClazz);
