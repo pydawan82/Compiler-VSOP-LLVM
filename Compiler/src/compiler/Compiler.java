@@ -154,11 +154,11 @@ public class Compiler {
 
 		Generator generator = new Generator(result.second(), result.third(), result.fourth(), out);
 		generator.emitLLVM();
-
+		
 		return true;
 	}
 
-	private static final String cmdFormat = "clang %s -o %s";
+	private static final String cmdFormat = "clang %s -o %s -w";
 	private static String compileCmd(String fileName, String output) {
 		return cmdFormat.formatted(fileName, output);
 	}
@@ -172,13 +172,20 @@ public class Compiler {
 			out.close();
 
 		Runtime runtime = Runtime.getRuntime();
-		Process clang = runtime.exec(compileCmd(llName, outName));
+		Process process = runtime.exec(compileCmd(llName, outName));
 		
-		int ret = clang.waitFor();
-		try(Scanner scan = new Scanner(clang.getInputStream())) {
+		int ret = process.waitFor();
+
+		try(Scanner scan = new Scanner(process.getInputStream())) {
 			scan.useDelimiter(System.lineSeparator());
 			scan.forEachRemaining(System.out::println);
 		}
+		
+		try(Scanner scan = new Scanner(process.getErrorStream())) {
+			scan.useDelimiter(System.lineSeparator());
+			scan.forEachRemaining(System.err::println);
+		}
+
 		return ret == SUCCESS;
 	}
 
@@ -241,7 +248,8 @@ public class Compiler {
 		} catch(InterruptedException e) {
 			System.exit(CLANG_FAIL);
 		} catch(Exception e) {
-			System.err.println(e.getMessage());
+			//System.err.println(e.getMessage());
+			e.printStackTrace();
 			System.exit(FAIL);
 		}
 	}

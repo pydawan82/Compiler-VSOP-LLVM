@@ -68,8 +68,8 @@ public class Context {
         unnamed();
     }
 
-    public Context(VSOPClass clazz) {
-        method = null;
+    public Context(VSOPClass clazz, VSOPMethod m) {
+        method = m;
 
         List<VSOPField> fields = clazz.fieldList();
         int ord = 1;

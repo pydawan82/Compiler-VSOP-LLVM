@@ -230,7 +230,7 @@ public class Generator {
      * @param clazz - a VSOPClass.
      */
     private void declareConstructor(VSOPClass clazz) {
-        Context ctx = new Context(clazz);
+        Context ctx = new Context(clazz, new VSOPMethod("_init", List.of(), clazz));
 
         String returnType = toLLVMType(clazz);
         String id = initId(clazz.id);

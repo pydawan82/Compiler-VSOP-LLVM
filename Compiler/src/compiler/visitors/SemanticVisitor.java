@@ -97,6 +97,10 @@ public class SemanticVisitor {
 		return false;
 	}
 
+	private String toString(VSOPType type) {
+		return (type==null) ? "undefined" : type.id;
+	}
+
 	/**
 	 * Proceed to semantic checking of the program. It also create the AST using the Visitor methodology.
 	 * @param ctx - The {@link ProgramContext}
@@ -104,10 +108,16 @@ public class SemanticVisitor {
 	 * <code>null</code> otherwise.
 	 */
 	public Triplet<ASTProgram, Map<VSOPField, Optional<ASTExpr>>, Map<VSOPMethod, ASTExpr>> check(ProgramContext ctx) {
-		ASTProgram program = visitProgram(ctx);
+		ASTProgram program = null;
+		try {
+			program = visitProgram(ctx);
+		} catch(Exception e) {
+			
+		}
+		
 		if(flushErrorQueue())
 			return new Triplet<>(program, fields, methods);
-		
+
 		return null;
 	}
 
@@ -145,9 +155,9 @@ public class SemanticVisitor {
 			ASTExpr exprType = visitExpr(ctx.expr());
 			value = Optional.of(exprType);
 
-			if (!exprType.type.canCast(fType))
+			if (exprType.type!=null && !exprType.type.canCast(fType))
 				errorQueue.add(new SemanticError(ctx.expr(),
-						String.format("cannot cast %s to %s", exprType.type.id, fType.id)));
+						String.format("cannot cast %s to %s", toString(exprType.type), toString(fType))));
 		} else {
 			value = Optional.empty();
 		}
@@ -178,7 +188,7 @@ public class SemanticVisitor {
 
 		if (!block.type.canCast(method.returnType))
 			errorQueue.add(new SemanticError(ctx.block(),
-					String.format("Method should return %s but got %s instead", method.returnType.id, block.type.id)));
+					String.format("Method should return %s but got %s instead", toString(method.returnType), toString(block.type))));
 
 		return new ASTMethod(method, formals, block);
 	}
@@ -224,7 +234,7 @@ public class SemanticVisitor {
 			if (method != null && i < method.args.size()) {
 				if (!argType.type.canCast(method.args.get(i).type)) {
 					errorQueue.add(new SemanticError(ctx.expr(i),
-							String.format("cannot cast from %s to %s", argType.type.id, method.args.get(i).type.id)));
+							String.format("cannot cast from %s to %s", toString(argType.type), toString(method.args.get(i).type))));
 				}
 			}
 			i++;
@@ -299,8 +309,7 @@ public class SemanticVisitor {
 		String id = ctx.id.getText();
 		VSOPType type = classMap.get(id);
 		if (type == null)
-			errorQueue.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
-					String.format("Invalid type indentifier %s", id)));
+			errorQueue.add(new SemanticError(ctx.id, String.format("Invalid type indentifier %s", id)));
 
 		return new ASTNew(type);
 	}
@@ -311,7 +320,7 @@ public class SemanticVisitor {
 
 		if (!condition.type.canCast(BOOL))
 			errorQueue.add(new SemanticError(ctx.expr(0),
-					String.format("Expected %s but got type %s", BOOL.id, condition.type.id)));
+					String.format("Expected %s but got type %s", BOOL.id, toString(condition.type))));
 
 		return new ASTWhile(condition, body);
 	}
@@ -369,13 +378,12 @@ public class SemanticVisitor {
 		ASTExpr object = visitExpr(ctx.expr());
 
 		VSOPMethod method = null;
-		if (object.type instanceof VSOPClass) {
-			VSOPClass exprClass = (VSOPClass) object.type;
+		if (object.type instanceof VSOPClass exprClass) {
 			method = exprClass.methods().get(id);
 
 			if (method == null) {
-				errorQueue.add(new SemanticError(ctx.id.getLine(), ctx.id.getCharPositionInLine(),
-						String.format("method %s is undefined for type %s", id, exprClass.id)));
+				errorQueue.add(new SemanticError(ctx.id, String.format("method %s is undefined for type %s", id, exprClass.id)));
+				return null;
 			}
 
 			methodStack.push(method);
@@ -401,9 +409,9 @@ public class SemanticVisitor {
 
 		Optional<ASTExpr> value = (ctx.as != null) ? Optional.of(visitExpr(ctx.as)) : Optional.empty();
 
-		if (value.isPresent() && !value.get().type.canCast(varType)) {
+		if (value.isPresent() && value.get().type!=null && !value.get().type.canCast(varType)) {
 			errorQueue.add(
-					new SemanticError(ctx, String.format("Cannot convert %s to %s", value.get().type.id, varType.id)));
+					new SemanticError(ctx, String.format("Cannot convert %s to %s", toString(value.get().type), toString(varType))));
 		}
 
 		ASTExpr in = visitExpr(ctx.ex);
@@ -436,7 +444,7 @@ public class SemanticVisitor {
 
 		if (condition.type != BOOL) {
 			errorQueue.add(new SemanticError(ctx,
-					String.format("Condition must be of type BOOL but got %s", condition.type.id)));
+					String.format("Condition must be of type BOOL but got %s", toString(condition.type))));
 		}
 
 		ASTExpr then = visitExpr(ctx.expr(1));
@@ -461,7 +469,7 @@ public class SemanticVisitor {
 				type = type1;
 			} else {
 				errorQueue.add(
-						new SemanticError(ctx, String.format("Type %s and %s does not match", type1.id, type2.id)));
+						new SemanticError(ctx, String.format("Type %s and %s does not match", toString(type1), toString(type2))));
 				type = null;
 			}
 		} else {
@@ -500,12 +508,12 @@ public class SemanticVisitor {
 			if (leftType != operator.opType) {
 				errorQueue
 						.add(new SemanticError(ctx.expr(0), String.format("Expected %s but got %s type for operator %s",
-								operator.opType.id, leftType.id, operator.id)));
+								operator.opType.id, toString(leftType), operator.id)));
 			}
 			if (rightType != operator.opType) {
 				errorQueue
 						.add(new SemanticError(ctx.expr(1), String.format("Expected %s but got %s type for operator %s",
-								operator.opType.id, rightType.id, operator.id)));
+								operator.opType.id, toString(rightType), operator.id)));
 			}
 		}
 

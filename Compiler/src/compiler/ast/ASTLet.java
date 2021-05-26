@@ -74,7 +74,7 @@ public class ASTLet extends ASTExpr {
 
     @Override
     public void print(PrintStream pStream, int indent) {
-		pStream.printf("Let(%s, %s, ", id, type.id);
+		pStream.printf("Let(%s, %s, ", id, varType.id);
 
 		if (value.isPresent()) {
 			value.get().print(pStream, indent+1);
