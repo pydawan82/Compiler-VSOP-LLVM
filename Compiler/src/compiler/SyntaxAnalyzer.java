@@ -65,10 +65,9 @@ public class SyntaxAnalyzer {
      */
     public boolean parse() {
 
-		SyntaxVisitor visitor = new SyntaxVisitor();
         try {
-            visitor.visitProgram(parser.program(), out);
-        } catch(Exception e) {}
+            SyntaxVisitor.print(out, parser.program());
+        } catch(Throwable e) {}
 
 		return flushErrorQueue();
     }
