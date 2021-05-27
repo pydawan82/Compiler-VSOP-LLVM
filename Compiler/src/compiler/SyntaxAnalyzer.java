@@ -67,7 +67,9 @@ public class SyntaxAnalyzer {
 
         try {
             SyntaxVisitor.print(out, parser.program());
-        } catch(Throwable e) {}
+        } catch(NullPointerException e) {
+            //Catches null pointer exception to avoid program exit if there is an parsing error
+        }
 
 		return flushErrorQueue();
     }
