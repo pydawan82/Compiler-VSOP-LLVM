@@ -10,14 +10,14 @@ import java.util.regex.Pattern;
 
 public final class PrintUtil {
 
-    private static final Pattern pattern = Pattern.compile("%(.)");
+    private static final Pattern pattern = Pattern.compile("#(.)");
 
     private static final String print = "p";
     private static final String newline = "n";
-    private static final String percent = "%";
+    private static final String hash = "#";
 
     @SafeVarargs
-    public static void format(PrintStream stream, String format, Consumer<PrintStream> ... printers) {
+    public static void pformat(PrintStream stream, String format, Consumer<PrintStream> ... printers) {
         Matcher matcher = pattern.matcher(format);
         int i = 0;
         int begin = 0;
@@ -31,7 +31,7 @@ public final class PrintUtil {
             switch(option) {
                 case print:
                     if(i >= printers.length)
-                        throw new MissingFormatArgumentException("%p");
+                        throw new MissingFormatArgumentException("#p");
                     printers[i].accept(stream);
                     i++;
                     break;
@@ -40,8 +40,8 @@ public final class PrintUtil {
                     stream.println();
                     break;
                 
-                case percent:
-                    stream.print(percent);
+                case hash:
+                    stream.print(hash);
                     break;
                 
                 default:
@@ -55,7 +55,7 @@ public final class PrintUtil {
     }
 
     @SafeVarargs
-    public static void join(PrintStream stream, String separator, Consumer<PrintStream> ... printers) {
+    public static void pjoin(PrintStream stream, String separator, Consumer<PrintStream> ... printers) {
         int i = 0;
 
         for(var printer: printers) {
@@ -74,7 +74,7 @@ public final class PrintUtil {
 
         while(true) {
             it.next().accept(stream);
-            
+
             if(it.hasNext())
                 stream.print(separator);
             else
