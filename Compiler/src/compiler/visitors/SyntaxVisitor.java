@@ -1,20 +1,23 @@
 package compiler.visitors;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import compiler.parsing.VSOPParser.*;
 import compiler.vsop.VSOPConstants;
+import compiler.util.Printer;
 
 import static compiler.util.PrintUtil.*;
 
 /**
  * A class that prints the parse tree of a given context.
+ * This class is NOT thread-safe. Do not attempt to print multiple trees at the same time.
  */
 public class SyntaxVisitor {
 
@@ -60,17 +63,62 @@ public class SyntaxVisitor {
 	private static String listSep = ","+System.lineSeparator();
 
 	private static <Context extends ParserRuleContext> void printList(PrintStream out, List<Context> contexts) {
-		List<Consumer<PrintStream>> printers = contexts.stream()
-				.map(c -> (Consumer<PrintStream>) (stream -> dispatch(stream, c)))
+		List<Printer> printers = contexts.stream()
+				.map(c -> (Printer) (stream -> dispatch(stream, c)))
 				.toList();
 
 
 		if(printers.size() == 0) {
 			out.print(emptyList);
 		} else {
-			String format = listFormat.formatted(TAB.repeat(tab), TAB.repeat(tab));
+			String format = listFormat.formatted(TAB.repeat(tab), TAB.repeat(tab-1));
 			pformat(out, format, (stream) -> join(stream, listSep+TAB.repeat(tab), printers));
 		}
+	}
+
+	private static void printElement(PrintStream out, String type, Object ... args) {
+		out.print(type);
+		out.print("(");
+
+		int i=0;
+		for(Object arg: args) {
+			if(arg instanceof Printer p)
+				p.print(out);
+			else
+				out.print(arg);
+
+			i++;
+			if(i <= args.length)
+				out.print(", ");
+		}
+
+		out.print(")");
+	}
+
+	private static void printElement(PrintStream out, String type, Iterable<Object> args) {
+		out.print(type);
+		out.print("(");
+
+        Iterator<Object> it = args.iterator();
+
+        if(!it.hasNext())
+            return;
+
+        while(true) {
+			Object arg = it.next();
+
+			if(arg instanceof Printer printer)
+            	printer.print(out);
+			else
+				out.print(arg);
+
+            if(it.hasNext())
+                out.print(", ");
+            else
+                break;
+        }
+
+		out.print(")");
 	}
 
 	private static void dispatch(PrintStream out, ParserRuleContext ctx) {
@@ -90,14 +138,20 @@ public class SyntaxVisitor {
 		tab--;
 	}
 
+
 	public static void print(PrintStream out, ClazzContext ctx) {
 		tab++;
 
+		String type = "Class";
 		String id = ctx.id.getText();
 		String superId = ctx.idext != null ? ctx.idext.getText() : VSOPConstants.OBJECT.id;
-		String format = "Class(%s, %s, #p)".formatted(id, superId);
 
-		pformat(out, format, (stream) -> print(stream, ctx.classBody()));
+		printElement(out, 
+			type,
+			id,
+			superId,
+			(Printer) stream -> print(stream, ctx.classBody())
+		);
 
 		tab--;
 	}
@@ -105,9 +159,8 @@ public class SyntaxVisitor {
 	public static void print(PrintStream out, ClassBodyContext ctx) {
 		tab++;
 
-		String format = "#p, #p";
 
-		pformat(out, format,
+		pjoin(out, ", ",
 			stream -> printList(stream, ctx.field()),
 			stream -> printList(stream, ctx.method())
 		);
@@ -118,34 +171,31 @@ public class SyntaxVisitor {
 	public static void print(PrintStream out, FieldContext ctx) {
 		tab++;
 
-		String id = ctx.id.getText();
+		String type = "Field";
+		List<Object> args = new ArrayList<Object>(2);
+		args.add(ctx.id.getText());
+		args.add((Printer) stream -> print(stream, ctx.type()));
 
-		if(ctx.expr() == null) {
-			String format  = "Field(%s, #p)".formatted(id);
+		if(ctx.expr() != null)
+			args.add((Printer) stream -> dispatch(out, ctx.expr()));
+		
+		printElement(out, type, args);
 
-			pformat(out, format, stream -> print(stream, ctx.type()));
-		} else {
-			String format  = "Field(%s, #p, #p)".formatted(id);
-
-			pformat(out, format,
-				stream -> print(stream, ctx.type()),
-				stream -> dispatchExpr(stream, ctx.expr())
-			);
-		}
 		tab--;
 	}
 
 	public static void print(PrintStream out, MethodContext ctx) {
 		tab++;
 
+		String type = "Method";
 		String id = ctx.id.getText();
-		String format = "Method(%s, #p, #p, #p)".formatted(id);
 
-		pformat(out, format,
-				stream -> print(out, ctx.formals()),
-				stream -> print(out, ctx.type()),
-				stream -> print(out, ctx.block())
-			);
+		printElement(out, type,
+			id,
+			(Printer) stream -> print(out, ctx.formals()),
+			(Printer) stream -> print(out, ctx.type()),
+			(Printer) stream -> print(out, ctx.block())
+		);
 
 		tab--;
 	}

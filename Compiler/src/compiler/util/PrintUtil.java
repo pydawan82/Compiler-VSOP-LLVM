@@ -4,7 +4,6 @@ import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.MissingFormatArgumentException;
 import java.util.UnknownFormatConversionException;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +16,7 @@ public final class PrintUtil {
     private static final String hash = "#";
 
     @SafeVarargs
-    public static void pformat(PrintStream stream, String format, Consumer<PrintStream> ... printers) {
+    public static void pformat(PrintStream stream, String format, Printer ... printers) {
         Matcher matcher = pattern.matcher(format);
         int i = 0;
         int begin = 0;
@@ -32,7 +31,7 @@ public final class PrintUtil {
                 case print:
                     if(i >= printers.length)
                         throw new MissingFormatArgumentException("#p");
-                    printers[i].accept(stream);
+                    printers[i].print(stream);
                     i++;
                     break;
                 
@@ -55,25 +54,25 @@ public final class PrintUtil {
     }
 
     @SafeVarargs
-    public static void pjoin(PrintStream stream, String separator, Consumer<PrintStream> ... printers) {
+    public static void pjoin(PrintStream stream, String separator, Printer ... printers) {
         int i = 0;
 
         for(var printer: printers) {
             i++;
-            printer.accept(stream);
+            printer.print(stream);
             if(i < printers.length)
                 stream.print(separator);
         }
     }
 
-    public static void join(PrintStream stream, String separator, Iterable<Consumer<PrintStream>> printers) {
-        Iterator<Consumer<PrintStream>> it = printers.iterator();
+    public static void join(PrintStream stream, String separator, Iterable<Printer> printers) {
+        Iterator<Printer> it = printers.iterator();
 
         if(!it.hasNext())
             return;
 
         while(true) {
-            it.next().accept(stream);
+            it.next().print(stream);
 
             if(it.hasNext())
                 stream.print(separator);
@@ -81,5 +80,4 @@ public final class PrintUtil {
                 break;
         }
     }
-
 }
