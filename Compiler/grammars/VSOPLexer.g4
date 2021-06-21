@@ -1,4 +1,5 @@
 lexer grammar VSOPLexer;
+import VSOPKeywords;
 
 /*
  * Fragments
@@ -14,43 +15,6 @@ fragment HexDigit: Digit | [a-fA-F];
  * Comments
  */
 SINGLELINE_COMMENT: '//' .*? ('\n'|EOF) -> skip;
-
-/*
- * Keywords
- */
- 
-AND: 'and';
-NOT: 'not';
-IN: 'in';
-
-CLASS: 'class';
-EXTENDS: 'extends';
-ISNULL: 'isnull';
-LET: 'let';
-NEW: 'new';
-SELF: 'self';
-
-IF: 'if';
-THEN: 'then';
-ELSE: 'else';
-
-WHILE: 'while';
-DO: 'do';
-
-TRUE: 'true';
-FALSE: 'false';
-
-BOOL: 'bool';
-UNIT: 'unit';
-INT32: 'int32';
-STRING: 'string';
-
-/*
- * Identifiers
- */
-
-TYPE_IDENTIFIER: UppercaseLetter (Letter|Digit|'_')*;
-OBJECT_IDENTIFIER: LowercaseLetter (Letter|Digit|'_')*;
 
 /*
  * Literals
