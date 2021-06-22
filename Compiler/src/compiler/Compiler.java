@@ -3,9 +3,7 @@ package compiler;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -193,7 +191,7 @@ public class Compiler {
 
 	public static void main(String[] args) {
 
-		args = "-p Compiler/vsop-examples/list.vsop".split(" ");
+		args = "-l Compiler/vsop-examples/list.vsop".split(" ");
 
 		List<String> argList = Arrays.asList(args);
 

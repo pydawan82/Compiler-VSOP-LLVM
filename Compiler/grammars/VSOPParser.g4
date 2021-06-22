@@ -2,7 +2,7 @@ parser grammar VSOPParser;
 options{tokenVocab = VSOPLexer;}
 
 program: clazz+;
-clazz: CLASS id=TYPE_IDENTIFIER (EXTENDS idext=TYPE_IDENTIFIER)? classBody;
+clazz: CLASS id=TYPE_IDENTIFIER (EXTENDS idext=TYPE_IDENTIFIER)? classBody {System.out.printf("Parsing class %s %n", $id.text);};
 classBody: LBRACE (field|method)* RBRACE;
 field: id=OBJECT_IDENTIFIER COLON type (ASSIGN expr)? SEMICOLON;
 method: id=OBJECT_IDENTIFIER LPAR formals RPAR COLON type block;
