@@ -136,6 +136,33 @@ mode MULTI;
 	UNCLOSED_MULTILINE_COMMENT: ('(*' MULTILINE_COMMENT | '(*' UNCLOSED_MULTILINE_COMMENT | comment_char)* EOF? {
 		int ln = 0;
 		int col = 0;
+		String text = "(*"+getText();
+
+		java.util.regex.Pattern delim = java.util.regex.Pattern.compile("(\\(\\*|\\*\\))");
+		java.util.regex.Matcher matcher = delim.matcher(text);
+		java.util.Stack<Integer> stack = new java.util.Stack<Integer>(); 
+
+		while(matcher.find()) {
+			int start = matcher.start();
+				if(text.substring(start, start+2).equals("(*"))
+					stack.push(start);
+				else
+					stack.pop();
+		}
+		
+		int errorPos = stack.pop();
+		int pos = 0;
+
+		delim = java.util.regex.Pattern.compile("\\n");
+		matcher = delim.matcher(text);
+
+		while(matcher.find() && matcher.start()<errorPos) {
+			pos = matcher.start();
+			ln++;
+		}
+
+		col = (ln != 0) ? (errorPos-pos-1) : (_tokenStartCharPositionInLine+errorPos);
+		ln += _tokenStartLine;
 		
 		getErrorListenerDispatch().syntaxError(this, "", ln, col, "Unclosed opened multiline comment "+getText(), null);
 	} -> mode(DEFAULT_MODE), skip;
