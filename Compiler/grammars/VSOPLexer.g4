@@ -127,13 +127,9 @@ mode STRING_MODE;
 
 mode MULTI;
 
-	fragment comment_char
-		: '('~[*]
-		| '*'~[)]
-		| ~[(*]
-		;
+	fragment Comment_char: ('('~[*] | '*'~[)] | ~[(*]);
 
-	UNCLOSED_MULTILINE_COMMENT: ('(*' MULTILINE_COMMENT | '(*' UNCLOSED_MULTILINE_COMMENT | comment_char)* EOF? {
+	UNCLOSED_MULTILINE_COMMENT: ('(*' MULTILINE_COMMENT | '(*' UNCLOSED_MULTILINE_COMMENT | Comment_char)* {
 		int ln = 0;
 		int col = 0;
 		String text = "(*"+getText();
@@ -144,7 +140,7 @@ mode MULTI;
 
 		while(matcher.find()) {
 			int start = matcher.start();
-				if(text.substring(start, start+2).equals("(*"))
+				if(matcher.group().equals("(*"))
 					stack.push(start);
 				else
 					stack.pop();
@@ -164,7 +160,7 @@ mode MULTI;
 		col = (ln != 0) ? (errorPos-pos-1) : (_tokenStartCharPositionInLine+errorPos);
 		ln += _tokenStartLine;
 		
-		getErrorListenerDispatch().syntaxError(this, "", ln, col, "Unclosed opened multiline comment "+getText(), null);
+		getErrorListenerDispatch().syntaxError(this, "", ln, col, "Unclosed opened multiline comment: "+getText(), null);
 	} -> mode(DEFAULT_MODE), skip;
 
-	MULTILINE_COMMENT: ('(*' MULTILINE_COMMENT | comment_char)*? '*)' -> mode(DEFAULT_MODE), skip;
+	MULTILINE_COMMENT: ('(*' MULTILINE_COMMENT | Comment_char)*? '*)' -> mode(DEFAULT_MODE), skip;
