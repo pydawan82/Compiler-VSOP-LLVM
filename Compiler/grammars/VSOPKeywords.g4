@@ -3,7 +3,13 @@ lexer grammar VSOPKeywords;
 tokens {AND, NOT, IN, CLASS, EXTENDS, ISNULL, LET, NEW, SELF, IF, THEN, ELSE, WHILE, DO, TRUE, FALSE, BOOL, UNIT, INT32, STRING}
 
 @lexer::header {
-	import java.util.*;
+	import java.util.Map;
+}
+
+@lexer::members { 
+	Map<String, Integer> keywordMap = Map.ofEntries(
+		new Entry<>("and", $AND.type)
+	) 
 }
 
 fragment LowercaseLetter: [a-z];
